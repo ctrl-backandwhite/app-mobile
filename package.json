@@ -4,8 +4,10 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@expo-google-fonts/roboto": "^0.4.3",
+    "@expo/vector-icons": "^15.0.2",
     "@noble/hashes": "^2.3.0",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-navigation/bottom-tabs": "^7.18.16",
     "@tanstack/react-query": "^5.101.4",
     "axios": "^1.19.0",
     "expo": "~57.0.13",

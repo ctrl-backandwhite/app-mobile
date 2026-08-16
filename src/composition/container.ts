@@ -5,6 +5,11 @@ import { SessionBridge } from '@core/http/session-bridge'
 import { logger } from '@core/logger/logger'
 import { ExpoSecretStore } from '@core/storage/secure-store.adapter'
 import { SecretStore } from '@core/storage/ports'
+import { HttpCatalogRepository } from '@features/catalog/data/repositories/http-catalog.repository'
+import { CatalogRepository } from '@features/catalog/domain/ports/catalog-repository'
+import { BrowseProducts } from '@features/catalog/domain/usecases/browse-products'
+import { ListCategories } from '@features/catalog/domain/usecases/list-categories'
+import { LoadHome } from '@features/catalog/domain/usecases/load-home'
 import { ExpoGoogleAuthGateway } from '@features/auth/data/repositories/expo-google-auth.gateway'
 import { HttpAuthRepository } from '@features/auth/data/repositories/http-auth.repository'
 import { SecureSessionStorage } from '@features/auth/data/repositories/secure-session.storage'
@@ -34,6 +39,9 @@ export interface Container {
   readonly resendActivation: ResendActivation
   readonly requestPasswordReset: RequestPasswordReset
   readonly confirmPasswordReset: ConfirmPasswordReset
+  readonly browseProducts: BrowseProducts
+  readonly loadHome: LoadHome
+  readonly listCategories: ListCategories
 }
 
 /**
@@ -87,6 +95,7 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     overrides.captcha ?? new AltchaCaptchaSolver(() => http.get<Challenge>('/captcha/challenge'))
   const authRepository: AuthRepository = new HttpAuthRepository(http, captcha)
   const google = new ExpoGoogleAuthGateway(config.apiBaseUrl, authRepository)
+  const catalogRepository: CatalogRepository = new HttpCatalogRepository(http)
 
   return {
     http,
@@ -101,5 +110,8 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     resendActivation: new ResendActivation(authRepository),
     requestPasswordReset: new RequestPasswordReset(authRepository),
     confirmPasswordReset: new ConfirmPasswordReset(authRepository),
+    browseProducts: new BrowseProducts(catalogRepository),
+    loadHome: new LoadHome(catalogRepository),
+    listCategories: new ListCategories(catalogRepository),
   }
 }
