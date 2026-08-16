@@ -19,6 +19,28 @@ que una regresión de tipos o una cobertura por debajo del 90 % no llega a gasta
 > encontraron archivos de flujo de trabajo en `.eas/workflows/`», es que la rama elegida todavía no
 > tiene estos ficheros. Empuja la rama antes de ejecutar.
 
+
+## Identidad del proyecto (resuelto)
+
+| Campo | Valor | Dónde vive |
+|---|---|---|
+| Nombre visible | `nx036` | Panel de Expo |
+| **Slug** | **`jfinol02`** | `app.config.ts` |
+| Project ID | `13a8bd95-5314-4527-8d1b-724191e54afa` | `app.config.ts` |
+| Cuenta | `nx036s-team` | `app.config.ts` |
+
+El slug dice `jfinol02` y no `nx036` porque **el slug de un proyecto de Expo no se puede cambiar**:
+renombrarlo en el panel cambia el nombre que se ve, no el identificador de la dirección. Ese
+proyecto es además el que tiene conectado el repositorio de GitHub.
+
+Si algún día se quiere el slug `nx036` hay que **crear un proyecto nuevo** (`eas init` con el slug
+deseado) y **volver a conectar GitHub y las credenciales de firma**. Es una decisión de imagen, no
+técnica: nada deja de funcionar por conservar `jfinol02`.
+
+El `projectId` va escrito en `app.config.ts` y no en una variable de entorno porque EAS lo necesita
+**antes** de cargar el entorno de la compilación; con la variable, aborta con «EAS project not
+configured». No es un secreto.
+
 ## Pasos manuales, en orden
 
 Estos pasos necesitan sesión en Expo o permisos en GitHub, así que hay que darlos a mano.

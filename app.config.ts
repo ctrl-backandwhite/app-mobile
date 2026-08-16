@@ -8,13 +8,18 @@ const COBALT = '#0c4a97'
 
 const config: ExpoConfig = {
   name: 'NX036',
-  // `slug` es la identidad del proyecto dentro de la cuenta de Expo y forma parte de la dirección
-  // del panel (expo.dev/accounts/<cuenta>/projects/<slug>). Si no coincide con el proyecto al que
-  // apunta `extra.eas.projectId`, EAS aborta antes de compilar. Véase docs/EAS.md.
-  slug: 'nx036',
-  // Cuenta u organización propietaria. Se lee del entorno para no dejar escrito aquí un
-  // identificador sin confirmar: mientras no se defina, EAS lo deduce del `projectId`.
-  owner: process.env.EXPO_OWNER,
+  /*
+   * `slug` es la identidad del proyecto dentro de la cuenta de Expo y forma parte de la dirección
+   * del panel (expo.dev/accounts/<cuenta>/projects/<slug>). Tiene que coincidir con el proyecto al
+   * que apunta `extra.eas.projectId` o EAS aborta antes de compilar.
+   *
+   * Dice `jfinol02` y no `nx036` porque **el slug de un proyecto de Expo no se puede cambiar**:
+   * renombrarlo en el panel cambia el nombre visible (que sí es «nx036»), no el identificador. Este
+   * proyecto es además el que tiene conectado el repositorio de GitHub, así que cambiarlo obligaría
+   * a crear otro y a rehacer esa conexión. Véase docs/EAS.md.
+   */
+  slug: 'jfinol02',
+  owner: 'nx036s-team',
   version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
@@ -54,9 +59,12 @@ const config: ExpoConfig = {
   ],
   extra: {
     eas: {
-      // El identificador real lo entrega `eas init` o el panel de Expo. Se mantiene en el entorno
-      // (`.env` en local, variable de entorno de EAS en la nube) para no versionarlo a ciegas.
-      projectId: process.env.EAS_PROJECT_ID,
+      /*
+       * Identificador del proyecto en Expo. Va escrito y no en una variable de entorno porque EAS
+       * lo necesita ANTES de cargar el entorno de la compilación: sin él, aborta con «EAS project
+       * not configured». No es un secreto, es un identificador público como el nombre del proyecto.
+       */
+      projectId: '13a8bd95-5314-4527-8d1b-724191e54afa',
     },
   },
 }
