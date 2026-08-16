@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { router, useLocalSearchParams } from 'expo-router'
 import { ReactElement, useMemo, useState } from 'react'
-import { ScrollView, Text, View } from 'react-native'
+import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
 import { Alert, Button, Screen } from '@ds/components'
@@ -13,6 +13,7 @@ import {
   variantFor,
   VariantSelection,
 } from '@features/catalog/domain/entities/product-detail'
+import { CartLine } from '@features/cart/domain/entities/cart-line'
 import { FavoriteButton } from '@features/favorites/presentation/components/FavoriteButton'
 
 import {
@@ -30,12 +31,13 @@ import {
 const REVIEWS_PAGE_SIZE = 5
 
 export function ProductDetailScreen(): ReactElement {
-  const { getProductDetail, listReviews, listRelatedProducts } = useContainer()
+  const { getProductDetail, listReviews, listRelatedProducts, addToCart } = useContainer()
   const locale = useSessionStore((state) => state.locale)
   const { slug } = useLocalSearchParams<{ slug: string }>()
 
   const [selection, setSelection] = useState<VariantSelection>({})
   const [quantity, setQuantity] = useState(1)
+  const [added, setAdded] = useState(false)
 
   const detail = useQuery({
     queryKey: ['product', slug, locale],
@@ -161,13 +163,37 @@ export function ProductDetailScreen(): ReactElement {
           ) : null}
 
           <Button
-            title="Añadir a la cesta"
+            title={added ? 'Añadido a la cesta' : 'Añadir a la cesta'}
             disabled={needsChoice}
             onPress={() => {
-              // La cesta llega en la fase siguiente; hasta entonces el botón queda visible pero
-              // inerte para no prometer algo que todavía no ocurre.
+              // La línea guarda lo justo para pintarse: el importe lo recalcula el backend en el
+              // presupuesto. Guardar aquí el precio del momento haría que la cesta enseñara un
+              // total distinto del que se cobra en cuanto cambiara una regla de precio.
+              const line: CartLine = {
+                productId: product.id,
+                variantId: variant?.id,
+                slug: product.slug,
+                title: product.title,
+                image: images[0]?.url ?? product.mainImage,
+                variantLabel: variant?.title,
+                sku: variant?.sku,
+                quantity,
+                moq: product.moq,
+              }
+              void addToCart.execute(line).then(() => {
+                setAdded(true)
+                // El aviso se retira solo: dejar el botón en «Añadido» para siempre haría dudar de
+                // si una segunda pulsación ha llegado a hacer algo.
+                setTimeout(() => setAdded(false), 2000)
+              })
             }}
           />
+
+          {added ? (
+            <Pressable onPress={() => router.push('/(app)/(tabs)/cart')} accessibilityRole="link">
+              <Text className="text-center text-[13px] text-primary">Ver la cesta</Text>
+            </Pressable>
+          ) : null}
 
           {product.description ? (
             <View className="gap-2">

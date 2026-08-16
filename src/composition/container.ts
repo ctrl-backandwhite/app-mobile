@@ -6,6 +6,20 @@ import { logger } from '@core/logger/logger'
 import { ExpoSecretStore } from '@core/storage/secure-store.adapter'
 import { SecretStore } from '@core/storage/ports'
 import { HttpCatalogRepository } from '@features/catalog/data/repositories/http-catalog.repository'
+import { AsyncCartStorage } from '@features/cart/data/repositories/async-cart.storage'
+import { HttpQuoteRepository } from '@features/cart/data/repositories/http-quote.repository'
+import { HttpSavedCartRepository } from '@features/cart/data/repositories/http-saved-cart.repository'
+import { AddToCart } from '@features/cart/domain/usecases/add-to-cart'
+import { ClearCart } from '@features/cart/domain/usecases/clear-cart'
+import { LoadCart } from '@features/cart/domain/usecases/load-cart'
+import { LoadSavedCart } from '@features/cart/domain/usecases/load-saved-cart'
+import { MergeGuestCart } from '@features/cart/domain/usecases/merge-guest-cart'
+import { MoveToCart } from '@features/cart/domain/usecases/move-to-cart'
+import { QuoteCart } from '@features/cart/domain/usecases/quote-cart'
+import { RemoveFromCart } from '@features/cart/domain/usecases/remove-from-cart'
+import { SaveForLater } from '@features/cart/domain/usecases/save-for-later'
+import { UpdateQuantity } from '@features/cart/domain/usecases/update-quantity'
+import { AsyncPreferenceStore } from '@core/storage/async-storage.adapter'
 import { HttpFavoritesRepository } from '@features/favorites/data/repositories/http-favorites.repository'
 import { FavoritesRepository } from '@features/favorites/domain/ports/favorites-repository'
 import { ListFavoriteIds } from '@features/favorites/domain/usecases/list-favorite-ids'
@@ -54,6 +68,16 @@ export interface Container {
   readonly getProductDetail: GetProductDetail
   readonly listReviews: ListReviews
   readonly listRelatedProducts: ListRelatedProducts
+  readonly loadCart: LoadCart
+  readonly loadSavedCart: LoadSavedCart
+  readonly addToCart: AddToCart
+  readonly updateQuantity: UpdateQuantity
+  readonly removeFromCart: RemoveFromCart
+  readonly clearCart: ClearCart
+  readonly quoteCart: QuoteCart
+  readonly saveForLater: SaveForLater
+  readonly moveToCart: MoveToCart
+  readonly mergeGuestCart: MergeGuestCart
 }
 
 /**
@@ -109,6 +133,9 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const google = new ExpoGoogleAuthGateway(config.apiBaseUrl, authRepository)
   const catalogRepository: CatalogRepository = new HttpCatalogRepository(http)
   const favoritesRepository: FavoritesRepository = new HttpFavoritesRepository(http)
+  const cartStorage = new AsyncCartStorage(new AsyncPreferenceStore())
+  const savedCartRepository = new HttpSavedCartRepository(http)
+  const quoteRepository = new HttpQuoteRepository(http)
 
   return {
     http,
@@ -131,5 +158,15 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     getProductDetail: new GetProductDetail(catalogRepository),
     listReviews: new ListReviews(catalogRepository),
     listRelatedProducts: new ListRelatedProducts(catalogRepository),
+    loadCart: new LoadCart(cartStorage),
+    loadSavedCart: new LoadSavedCart(savedCartRepository),
+    addToCart: new AddToCart(cartStorage),
+    updateQuantity: new UpdateQuantity(cartStorage),
+    removeFromCart: new RemoveFromCart(cartStorage),
+    clearCart: new ClearCart(cartStorage),
+    quoteCart: new QuoteCart(quoteRepository),
+    saveForLater: new SaveForLater(cartStorage, savedCartRepository),
+    moveToCart: new MoveToCart(cartStorage, savedCartRepository),
+    mergeGuestCart: new MergeGuestCart(savedCartRepository),
   }
 }

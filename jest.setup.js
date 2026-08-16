@@ -1,3 +1,12 @@
+/**
+ * AsyncStorage necesita su módulo nativo, que en Jest no existe. La propia librería publica un
+ * sustituto en memoria; sin él, cualquier prueba que monte el contenedor de dependencias falla con
+ * «NativeModule: AsyncStorage is null».
+ */
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
+)
+
 const { router } = require('expo-router')
 
 /**

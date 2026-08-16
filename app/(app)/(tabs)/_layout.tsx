@@ -44,6 +44,13 @@ export default function TabsLayout(): ReactElement {
         }}
       />
       <Tabs.Screen
+        name="cart"
+        options={{
+          title: 'Cesta',
+          tabBarIcon: ({ color, size }) => <Ionicons name="cart-outline" color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
         name="account"
         options={{
           title: 'Cuenta',
