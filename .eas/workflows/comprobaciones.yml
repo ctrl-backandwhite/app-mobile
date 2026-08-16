@@ -1,0 +1,45 @@
+# Puerta de calidad del repositorio. No compila nada: solo comprueba que el código está sano.
+# Existe por separado porque una compilación cuesta minutos de máquina y cuota del plan, y no tiene
+# sentido gastarlos en un árbol que ya falla al comprobar tipos.
+name: Comprobaciones
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - features
+  pull_request:
+    branches:
+      - main
+      - develop
+      - features
+
+# Un empujón nuevo sobre la misma referencia deja obsoleta la ejecución anterior: se cancela en vez
+# de dejar dos trabajos compitiendo por decir la verdad sobre la misma rama.
+concurrency:
+  cancel_in_progress: true
+  group: ${{ workflow.filename }}-${{ github.ref }}
+
+defaults:
+  tools:
+    # El Node 18 del sistema no sirve para este proyecto; se fija la misma versión que .nvmrc para
+    # que la máquina de EAS y la de desarrollo no discrepen.
+    node: 22.16.0
+
+jobs:
+  comprobaciones:
+    name: Tipos, lint y pruebas
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - name: Tipos
+        run: npm run typecheck
+      # El lint es además quien verifica la arquitectura hexagonal (eslint-plugin-boundaries): si
+      # pasa, ninguna capa importa hacia fuera.
+      - name: Lint
+        run: npm run lint
+      # El umbral del 90 % en las cuatro métricas vive en jest.config.js. Al pedir la cobertura, un
+      # descenso rompe la ejecución aquí y no en revisión.
+      - name: Pruebas con cobertura
+        run: npm test -- --coverage

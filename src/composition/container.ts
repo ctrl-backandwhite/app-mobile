@@ -6,9 +6,16 @@ import { logger } from '@core/logger/logger'
 import { ExpoSecretStore } from '@core/storage/secure-store.adapter'
 import { SecretStore } from '@core/storage/ports'
 import { HttpCatalogRepository } from '@features/catalog/data/repositories/http-catalog.repository'
+import { HttpFavoritesRepository } from '@features/favorites/data/repositories/http-favorites.repository'
+import { FavoritesRepository } from '@features/favorites/domain/ports/favorites-repository'
+import { ListFavoriteIds } from '@features/favorites/domain/usecases/list-favorite-ids'
+import { ToggleFavorite } from '@features/favorites/domain/usecases/toggle-favorite'
 import { CatalogRepository } from '@features/catalog/domain/ports/catalog-repository'
 import { BrowseProducts } from '@features/catalog/domain/usecases/browse-products'
+import { GetProductDetail } from '@features/catalog/domain/usecases/get-product-detail'
 import { ListCategories } from '@features/catalog/domain/usecases/list-categories'
+import { ListRelatedProducts } from '@features/catalog/domain/usecases/list-related-products'
+import { ListReviews } from '@features/catalog/domain/usecases/list-reviews'
 import { LoadHome } from '@features/catalog/domain/usecases/load-home'
 import { ExpoGoogleAuthGateway } from '@features/auth/data/repositories/expo-google-auth.gateway'
 import { HttpAuthRepository } from '@features/auth/data/repositories/http-auth.repository'
@@ -42,6 +49,11 @@ export interface Container {
   readonly browseProducts: BrowseProducts
   readonly loadHome: LoadHome
   readonly listCategories: ListCategories
+  readonly toggleFavorite: ToggleFavorite
+  readonly listFavoriteIds: ListFavoriteIds
+  readonly getProductDetail: GetProductDetail
+  readonly listReviews: ListReviews
+  readonly listRelatedProducts: ListRelatedProducts
 }
 
 /**
@@ -96,6 +108,7 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const authRepository: AuthRepository = new HttpAuthRepository(http, captcha)
   const google = new ExpoGoogleAuthGateway(config.apiBaseUrl, authRepository)
   const catalogRepository: CatalogRepository = new HttpCatalogRepository(http)
+  const favoritesRepository: FavoritesRepository = new HttpFavoritesRepository(http)
 
   return {
     http,
@@ -113,5 +126,10 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     browseProducts: new BrowseProducts(catalogRepository),
     loadHome: new LoadHome(catalogRepository),
     listCategories: new ListCategories(catalogRepository),
+    toggleFavorite: new ToggleFavorite(favoritesRepository),
+    listFavoriteIds: new ListFavoriteIds(favoritesRepository),
+    getProductDetail: new GetProductDetail(catalogRepository),
+    listReviews: new ListReviews(catalogRepository),
+    listRelatedProducts: new ListRelatedProducts(catalogRepository),
   }
 }

@@ -1,0 +1,64 @@
+# Compilaciones de tienda con el perfil `production` de eas.json (backend de producción).
+# Android entrega un AAB para Google Play; iOS, un IPA firmado para App Store Connect.
+#
+# Este flujo NO envía a las tiendas: solo compila. El envío requiere credenciales de publicación
+# (cuenta de servicio de Google Play y clave de App Store Connect) que se dan de alta aparte; véase
+# docs/EAS.md.
+name: Compilación de producción
+
+on:
+  # La etiqueta de versión es lo que marca una entrega: `git tag v0.2.0 && git push origin v0.2.0`.
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+    inputs:
+      plataformas:
+        type: choice
+        description: Plataformas a compilar
+        options:
+          - ambas
+          - android
+          - ios
+        required: false
+        default: ambas
+
+defaults:
+  tools:
+    node: 22.16.0
+
+jobs:
+  comprobaciones:
+    name: Tipos, lint y pruebas
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - name: Tipos
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Pruebas con cobertura
+        run: npm test -- --coverage
+
+  build_android:
+    name: Android (AAB de tienda)
+    needs: [comprobaciones]
+    # Al llegar por etiqueta de versión el contexto `inputs` está vacío, y `|| 'ambas'` hace que se
+    # compilen las dos plataformas. La elección manual solo sirve para acotar una ejecución suelta,
+    # por ejemplo mientras iOS siga sin credenciales de firma.
+    if: ${{ (inputs.plataformas || 'ambas') == 'ambas' || inputs.plataformas == 'android' }}
+    type: build
+    params:
+      platform: android
+      profile: production
+      message: ${{ github.ref_name }}
+
+  build_ios:
+    name: iOS (IPA de tienda)
+    needs: [comprobaciones]
+    if: ${{ (inputs.plataformas || 'ambas') == 'ambas' || inputs.plataformas == 'ios' }}
+    type: build
+    params:
+      platform: ios
+      profile: production
+      message: ${{ github.ref_name }}

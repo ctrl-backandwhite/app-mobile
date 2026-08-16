@@ -1,4 +1,4 @@
-import { ReactElement } from 'react'
+import { ReactElement, ReactNode } from 'react'
 import { Image, Pressable, Text, View } from 'react-native'
 
 import { hasDiscount, ProductSummary } from '@features/catalog/domain/entities/product'
@@ -6,6 +6,11 @@ import { hasDiscount, ProductSummary } from '@features/catalog/domain/entities/p
 interface Props {
   product: ProductSummary
   onPress: (product: ProductSummary) => void
+  /**
+   * Adorno sobre la imagen, en la esquina superior derecha. Es una ranura y no un botón concreto
+   * para que la tarjeta no tenga que conocer la feature de favoritos: quien la usa decide qué poner.
+   */
+  overlay?: ReactNode
 }
 
 /**
@@ -38,7 +43,7 @@ function formatSales(monthlySales: number): string {
   return monthlySales > 9999 ? `${(monthlySales / 1000).toFixed(1)}k` : String(monthlySales)
 }
 
-export function ProductCard({ product, onPress }: Props): ReactElement {
+export function ProductCard({ product, onPress, overlay }: Props): ReactElement {
   const price = product.displayFormatted
   // La regla de cuándo hay rebaja vive en el dominio: aquí solo se decide cómo se pinta.
   const onSale = hasDiscount(product)
@@ -53,16 +58,19 @@ export function ProductCard({ product, onPress }: Props): ReactElement {
       onPress={() => onPress(product)}
       className="overflow-hidden rounded-box border border-base-300 bg-base-100"
     >
-      {product.mainImage ? (
-        <Image
-          accessibilityIgnoresInvertColors
-          source={{ uri: product.mainImage }}
-          resizeMode="cover"
-          className="aspect-square w-full bg-base-200"
-        />
-      ) : (
-        <View className="aspect-square w-full bg-base-200" />
-      )}
+      <View>
+        {product.mainImage ? (
+          <Image
+            accessibilityIgnoresInvertColors
+            source={{ uri: product.mainImage }}
+            resizeMode="cover"
+            className="aspect-square w-full bg-base-200"
+          />
+        ) : (
+          <View className="aspect-square w-full bg-base-200" />
+        )}
+        {overlay ? <View className="absolute right-2 top-2">{overlay}</View> : null}
+      </View>
 
       <View className="gap-1.5 p-3">
         {/* Dos líneas fijas: sin la altura mínima, un título corto y otro largo descuadran la fila. */}

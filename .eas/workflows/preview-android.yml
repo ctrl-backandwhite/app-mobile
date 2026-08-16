@@ -1,0 +1,51 @@
+# Genera un APK instalable con el perfil `preview` de eas.json (apunta al backend de preproducción).
+# Es la compilación que se pasa a quien tiene que probar la app en su móvil Android: al ser
+# `distribution: internal`, EAS devuelve un enlace de instalación directa, sin pasar por la tienda.
+#
+# iOS queda fuera a propósito: instalar en un iPhone físico exige una cuenta de Apple Developer de
+# pago para firmar el perfil ad hoc. Véase docs/EAS.md.
+name: APK de previsualización (Android)
+
+on:
+  # Etiquetar la pull request es la forma de pedir el APK sin salir de GitHub. La etiqueta hay que
+  # crearla una vez en el repositorio (Issues > Labels) con este nombre exacto.
+  pull_request_labeled:
+    labels:
+      - preview-android
+  # Además se puede lanzar a mano desde el panel o con `eas workflow:run`.
+  workflow_dispatch:
+    inputs:
+      motivo:
+        type: string
+        required: false
+        description: Nota que acompañará a la compilación en el panel de Expo
+        default: Compilación manual de previsualización
+
+defaults:
+  tools:
+    node: 22.16.0
+
+jobs:
+  comprobaciones:
+    name: Tipos, lint y pruebas
+    steps:
+      - uses: eas/checkout
+      - uses: eas/install_node_modules
+      - name: Tipos
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Pruebas con cobertura
+        run: npm test -- --coverage
+
+  apk_android:
+    name: APK Android (perfil preview)
+    # `needs` y no `after`: si las comprobaciones caen, no se compila.
+    needs: [comprobaciones]
+    type: build
+    params:
+      platform: android
+      profile: preview
+      # En las ejecuciones que no vienen de `workflow_dispatch` el contexto `inputs` está vacío, así
+      # que se recurre al nombre de la referencia de git.
+      message: ${{ inputs.motivo || github.ref_name }}

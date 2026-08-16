@@ -7,6 +7,7 @@ import { useContainer } from '@composition/container.provider'
 import { Screen } from '@ds/components'
 import { ProductSummary } from '@features/catalog/domain/entities/product'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
+import { FavoriteButton } from '@features/favorites/presentation/components/FavoriteButton'
 
 import { CategoryChips, EmptyState, ProductCard, ProductCardSkeleton, SearchBar } from '../components'
 
@@ -126,7 +127,7 @@ export function CatalogScreen(): ReactElement {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <View className="flex-1">
-              <ProductCard product={item} onPress={openProduct} />
+              <ProductCard product={item} onPress={openProduct} overlay={<FavoriteButton productId={item.id} />} />
             </View>
           )}
           onEndReachedThreshold={0.5}

@@ -17,10 +17,21 @@ const router = {
   navigate: jest.fn(),
 }
 
+/**
+ * Parámetros de la ruta activa. Las pantallas con parámetro —la ficha, por ejemplo— los leen de
+ * `useLocalSearchParams`, así que la prueba necesita poder fijarlos antes de montar.
+ */
+let localParams = {}
+
+function setLocalSearchParams(params) {
+  localParams = params ?? {}
+}
+
 module.exports = {
   router,
   useRouter: () => router,
-  useLocalSearchParams: () => ({}),
+  useLocalSearchParams: () => localParams,
+  setLocalSearchParams,
   useSegments: () => [],
   Redirect: ({ href }) => React.createElement('Redirect', { href }),
   Stack: Object.assign(({ children }) => React.createElement('Stack', null, children), {

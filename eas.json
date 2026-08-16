@@ -7,23 +7,42 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
+      "environment": "development",
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "http://10.0.2.2:18082"
+      },
+      "android": {
+        "image": "latest"
+      },
+      "ios": {
+        "image": "latest"
       }
     },
     "preview": {
       "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      },
+      "environment": "preview",
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://back-pre.up.railway.app"
+      },
+      "android": {
+        "buildType": "apk",
+        "image": "latest"
+      },
+      "ios": {
+        "image": "latest"
       }
     },
     "production": {
       "autoIncrement": true,
+      "environment": "production",
       "env": {
         "EXPO_PUBLIC_API_BASE_URL": "https://back-pro.up.railway.app"
+      },
+      "android": {
+        "image": "latest"
+      },
+      "ios": {
+        "image": "latest"
       }
     }
   },

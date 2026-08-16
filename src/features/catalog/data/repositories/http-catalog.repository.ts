@@ -7,11 +7,22 @@ import { ProductFilters } from '@features/catalog/domain/entities/filters'
 import { Home } from '@features/catalog/domain/entities/home'
 import { Page } from '@features/catalog/domain/entities/page'
 import { ProductSummary } from '@features/catalog/domain/entities/product'
+import { ProductDetail } from '@features/catalog/domain/entities/product-detail'
+import { Review } from '@features/catalog/domain/entities/review'
 import { CatalogRepository } from '@features/catalog/domain/ports/catalog-repository'
 
-import { categoryTreeDto, homeSectionsDto, productPageDto } from '../dto/catalog.dto'
+import {
+  categoryTreeDto,
+  homeSectionsDto,
+  productDetailDto,
+  productPageDto,
+  relatedProductsDto,
+  reviewPageDto,
+} from '../dto/catalog.dto'
 import { toCategory } from '../mappers/category.mapper'
+import { toProductDetail } from '../mappers/product-detail.mapper'
 import { toProductPage, toProductSummary } from '../mappers/product.mapper'
+import { toReviewPage } from '../mappers/review.mapper'
 
 /** Zod señala sus fallos con este nombre; comprobarlo evita acoplarse a la clase concreta. */
 function isSchemaViolation(error: unknown): boolean {
@@ -76,6 +87,44 @@ export class HttpCatalogRepository implements CatalogRepository {
     return this.call(
       () => this.http.get('/catalog/categories/tree', { params: { lang } }),
       (raw) => categoryTreeDto.parse(raw).map(toCategory),
+    )
+  }
+
+  async productBySlug(slug: string, lang: string): Promise<Result<ProductDetail, AppError>> {
+    return this.call(
+      // El slug se codifica porque llega de un enlace y puede traer acentos o barras: sin escapar
+      // cambiaría la ruta y el backend respondería con otro recurso, o con ninguno.
+      () =>
+        this.http.get(`/catalog/products/${encodeURIComponent(slug)}`, { params: { lang } }),
+      (raw) => toProductDetail(productDetailDto.parse(raw)),
+    )
+  }
+
+  async reviews(
+    productId: string,
+    page: number,
+    size: number,
+  ): Promise<Result<Page<Review>, AppError>> {
+    return this.call(
+      () =>
+        this.http.get(`/catalog/products/${encodeURIComponent(productId)}/reviews`, {
+          params: { page, size },
+        }),
+      (raw) => toReviewPage(reviewPageDto.parse(raw)),
+    )
+  }
+
+  async relatedProducts(
+    productId: string,
+    lang: string,
+    limit: number,
+  ): Promise<Result<ProductSummary[], AppError>> {
+    return this.call(
+      () =>
+        this.http.get(`/catalog/products/${encodeURIComponent(productId)}/related`, {
+          params: { lang, limit },
+        }),
+      (raw) => relatedProductsDto.parse(raw).map(toProductSummary),
     )
   }
 }

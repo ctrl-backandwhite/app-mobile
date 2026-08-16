@@ -18,6 +18,7 @@ import { ContainerProvider } from '@composition/container.provider'
 import { getAppConfig } from '@core/config/env'
 import { useBootstrapSession } from '@features/auth/presentation/hooks/use-bootstrap-session'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
+import { useLoadFavorites } from '@features/favorites/presentation/hooks/use-load-favorites'
 
 // Retener el arranque evita el salto tipográfico: sin esto la primera pintura sale con la fuente
 // del sistema y se recompone al entrar Roboto.
@@ -31,6 +32,7 @@ void SplashScreen.preventAutoHideAsync()
  */
 function SessionGate({ fontsReady }: { fontsReady: boolean }): ReactElement | null {
   useBootstrapSession()
+  useLoadFavorites()
   const status = useSessionStore((state) => state.status)
   const ready = fontsReady && status !== 'loading'
 

@@ -9,5 +9,11 @@ export default function AppLayout(): ReactElement {
 
   if (status === 'anonymous') return <Redirect href="/login" />
 
-  return <Stack screenOptions={{ headerShown: false }} />
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      {/* La ficha se abre sobre las pestañas y se cierra con el gesto de volver del sistema. */}
+      <Stack.Screen name="product/[slug]" options={{ presentation: 'card' }} />
+    </Stack>
+  )
 }

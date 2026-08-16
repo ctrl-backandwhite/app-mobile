@@ -11,4 +11,10 @@ declare const routerMock: {
  * aplicación que no las tiene, y sin @types/node el `global` que usan las pruebas no existe para
  * TypeScript. Se declara aquí solo lo que hace falta, sin abrir la puerta al resto de Node.
  */
-declare const global: typeof globalThis & { routerMock: typeof routerMock }
+declare const global: typeof globalThis & {
+  routerMock: typeof routerMock
+  setLocalSearchParams: typeof setLocalSearchParams
+}
+
+/** Fija los parámetros de ruta que devolverá `useLocalSearchParams` en la prueba siguiente. */
+declare const setLocalSearchParams: (params: Record<string, string>) => void

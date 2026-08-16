@@ -6,8 +6,10 @@ const { router } = require('expo-router')
  * reimportarlo en cada fichero, y se limpian los espías entre pruebas.
  */
 global.routerMock = router
+global.setLocalSearchParams = require('expo-router').setLocalSearchParams
 
 beforeEach(() => {
+  global.setLocalSearchParams({})
   router.replace.mockClear()
   router.push.mockClear()
   router.back.mockClear()

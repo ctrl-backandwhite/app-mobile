@@ -8,7 +8,13 @@ const COBALT = '#0c4a97'
 
 const config: ExpoConfig = {
   name: 'NX036',
+  // `slug` es la identidad del proyecto dentro de la cuenta de Expo y forma parte de la dirección
+  // del panel (expo.dev/accounts/<cuenta>/projects/<slug>). Si no coincide con el proyecto al que
+  // apunta `extra.eas.projectId`, EAS aborta antes de compilar. Véase docs/EAS.md.
   slug: 'nx036',
+  // Cuenta u organización propietaria. Se lee del entorno para no dejar escrito aquí un
+  // identificador sin confirmar: mientras no se defina, EAS lo deduce del `projectId`.
+  owner: process.env.EXPO_OWNER,
   version: '0.1.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
@@ -48,6 +54,8 @@ const config: ExpoConfig = {
   ],
   extra: {
     eas: {
+      // El identificador real lo entrega `eas init` o el panel de Expo. Se mantiene en el entorno
+      // (`.env` en local, variable de entorno de EAS en la nube) para no versionarlo a ciegas.
       projectId: process.env.EAS_PROJECT_ID,
     },
   },

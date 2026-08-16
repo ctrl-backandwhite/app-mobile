@@ -13,6 +13,13 @@ import { ProductFilters } from '../entities/filters'
 import { Home } from '../entities/home'
 import { Page } from '../entities/page'
 import { ProductSummary } from '../entities/product'
+import {
+  ProductDetail,
+  ProductImage,
+  ProductVariant,
+  VariantOption,
+} from '../entities/product-detail'
+import { Review } from '../entities/review'
 import { CatalogRepository } from '../ports/catalog-repository'
 
 export function aProduct(overrides: Partial<ProductSummary> = {}): ProductSummary {
@@ -54,10 +61,70 @@ export function aPage(
   }
 }
 
+export function anImage(overrides: Partial<ProductImage> = {}): ProductImage {
+  return {
+    id: 'i-1',
+    url: 'https://cdn.nx036.com/media/aa/aaa.jpg',
+    sourceUrl: 'https://cbu01.alicdn.com/img/ibank/O1CN01GALERIA.jpg',
+    position: 0,
+    ...overrides,
+  }
+}
+
+export function aVariant(overrides: Partial<ProductVariant> = {}): ProductVariant {
+  return {
+    id: 'v-1',
+    sku: 'SKU-1',
+    stock: 20,
+    options: { Color: 'Rojo' },
+    active: true,
+    priceFormatted: '12,90 €',
+    ...overrides,
+  }
+}
+
+export function aVariantOption(overrides: Partial<VariantOption> = {}): VariantOption {
+  return {
+    id: 'o-1',
+    name: 'Color',
+    position: 0,
+    values: [{ id: 'ov-1', value: 'Rojo', position: 0 }],
+    ...overrides,
+  }
+}
+
+export function aProductDetail(overrides: Partial<ProductDetail> = {}): ProductDetail {
+  return {
+    ...aProduct(),
+    moq: 1,
+    reviewCount: 0,
+    images: [anImage()],
+    variants: [aVariant()],
+    variantOptions: [aVariantOption()],
+    priceTiers: [],
+    ...overrides,
+  }
+}
+
+export function aReview(overrides: Partial<Review> = {}): Review {
+  return {
+    id: 'r-1',
+    rating: 5,
+    title: 'Muy bien',
+    body: 'Llegó antes de lo previsto.',
+    authorName: 'Ana',
+    createdAt: '2026-08-01T10:00:00Z',
+    ...overrides,
+  }
+}
+
 interface Config {
   page?: Page<ProductSummary>
   home?: Home
   categories?: Category[]
+  detail?: ProductDetail
+  reviews?: Page<Review>
+  related?: ProductSummary[]
   error?: AppError
 }
 
@@ -67,6 +134,9 @@ export class FakeCatalogRepository implements CatalogRepository {
   lastLang: string | null = null
   lastFilters: ProductFilters | null = null
   lastPerSection: number | null = null
+  lastSlug: string | null = null
+  lastProductId: string | null = null
+  lastLimit: number | null = null
 
   constructor(private readonly config: Config = {}) {}
 
@@ -96,5 +166,33 @@ export class FakeCatalogRepository implements CatalogRepository {
   async categoriesTree(lang: string): Promise<Result<Category[], AppError>> {
     this.lastLang = lang
     return this.config.categories ? ok(this.config.categories) : this.fail<Category[]>()
+  }
+
+  async productBySlug(slug: string, lang: string): Promise<Result<ProductDetail, AppError>> {
+    this.lastSlug = slug
+    this.lastLang = lang
+    return this.config.detail ? ok(this.config.detail) : this.fail<ProductDetail>()
+  }
+
+  async reviews(
+    productId: string,
+    page: number,
+    size: number,
+  ): Promise<Result<Page<Review>, AppError>> {
+    this.lastProductId = productId
+    this.lastPage = page
+    this.lastSize = size
+    return this.config.reviews ? ok(this.config.reviews) : this.fail<Page<Review>>()
+  }
+
+  async relatedProducts(
+    productId: string,
+    lang: string,
+    limit: number,
+  ): Promise<Result<ProductSummary[], AppError>> {
+    this.lastProductId = productId
+    this.lastLang = lang
+    this.lastLimit = limit
+    return this.config.related ? ok(this.config.related) : this.fail<ProductSummary[]>()
   }
 }
