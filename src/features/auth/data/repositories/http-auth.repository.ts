@@ -68,9 +68,12 @@ export class HttpAuthRepository implements AuthRepository {
     )
   }
 
-  async currentUser(): Promise<Result<User, AppError>> {
+  async currentUser(accessToken?: string): Promise<Result<User, AppError>> {
+    // La cabecera explícita gana al token de la sesión: es la vía para identificarse con uno recién
+    // emitido, sin tener que publicarlo antes como sesión activa.
+    const config = accessToken ? { headers: { Authorization: `Bearer ${accessToken}` } } : undefined
     return this.call(
-      () => this.http.get('/me'),
+      () => this.http.get('/me', config),
       (raw) => toUser(userDto.parse(raw)),
     )
   }

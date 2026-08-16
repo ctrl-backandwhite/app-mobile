@@ -4,13 +4,14 @@ import { Pressable, Text, View } from 'react-native'
 
 import { AppError } from '@core/errors/app-error'
 import { useContainer } from '@composition/container.provider'
-import { Alert, BrandHeader, Button, Card, PasswordField, Screen, TextField } from '@ds/components'
+import { Alert, BrandHeader, Button, Card, Divider, PasswordField, Screen, TextField } from '@ds/components'
 
+import { GoogleButton } from '../components/GoogleButton'
 import { OtpField } from '../components/OtpField'
 import { useSessionStore } from '../state/session.store'
 
 export function LoginScreen(): ReactElement {
-  const { signIn } = useContainer()
+  const { signIn, signInWithGoogle } = useContainer()
   const signedIn = useSessionStore((state) => state.signedIn)
 
   const [email, setEmail] = useState('')
@@ -21,6 +22,7 @@ export function LoginScreen(): ReactElement {
   const [otpRequired, setOtpRequired] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [googleSubmitting, setGoogleSubmitting] = useState(false)
 
   function handleFailure(failure: AppError): void {
     if (failure.code === 'MFA_REQUIRED') {
@@ -63,6 +65,25 @@ export function LoginScreen(): ReactElement {
     }
   }
 
+  async function submitWithGoogle(): Promise<void> {
+    setGoogleSubmitting(true)
+    setError(null)
+    try {
+      const result = await signInWithGoogle.execute()
+      if (!result.ok) {
+        // Cancelar no es un fallo que merezca un aviso rojo: la persona ya sabe que ha salido.
+        if (result.error.code === 'CANCELLED') return
+        setError(result.error.message)
+        return
+      }
+      const { user, accessToken, refreshToken } = result.value
+      signedIn(user, accessToken, refreshToken)
+      router.replace('/')
+    } finally {
+      setGoogleSubmitting(false)
+    }
+  }
+
   return (
     <Screen padded={false}>
       <BrandHeader subtitle="Tu catálogo mayorista, en el bolsillo" />
@@ -73,6 +94,10 @@ export function LoginScreen(): ReactElement {
           {error ? <Alert variant="error" message={error} /> : null}
 
           <View className="mt-4 gap-4">
+            <GoogleButton onPress={submitWithGoogle} loading={googleSubmitting} disabled={submitting} />
+
+            <Divider label="o con tu correo" />
+
             <TextField
               label="Correo electrónico"
               value={email}
@@ -98,7 +123,7 @@ export function LoginScreen(): ReactElement {
               <Text className="text-[13px] text-primary">¿Has olvidado tu contraseña?</Text>
             </Pressable>
 
-            <Button title="Entrar" onPress={submit} loading={submitting} />
+            <Button title="Entrar" onPress={submit} loading={submitting} disabled={googleSubmitting} />
           </View>
         </Card>
 

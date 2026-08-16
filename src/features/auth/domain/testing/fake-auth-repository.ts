@@ -48,7 +48,7 @@ export class FakeAuthRepository implements AuthRepository {
     return this.config.session ? ok(this.config.session) : this.fail<Session>()
   }
 
-  async currentUser(): Promise<Result<User, AppError>> {
+  async currentUser(_accessToken?: string): Promise<Result<User, AppError>> {
     const user = this.config.user ?? this.config.session?.user
     return user ? ok(user) : this.fail<User>()
   }

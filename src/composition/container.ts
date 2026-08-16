@@ -5,6 +5,7 @@ import { SessionBridge } from '@core/http/session-bridge'
 import { logger } from '@core/logger/logger'
 import { ExpoSecretStore } from '@core/storage/secure-store.adapter'
 import { SecretStore } from '@core/storage/ports'
+import { ExpoGoogleAuthGateway } from '@features/auth/data/repositories/expo-google-auth.gateway'
 import { HttpAuthRepository } from '@features/auth/data/repositories/http-auth.repository'
 import { SecureSessionStorage } from '@features/auth/data/repositories/secure-session.storage'
 import { AuthRepository } from '@features/auth/domain/ports/auth-repository'
@@ -16,6 +17,7 @@ import { RequestPasswordReset } from '@features/auth/domain/usecases/request-pas
 import { ResendActivation } from '@features/auth/domain/usecases/resend-activation'
 import { RestoreSession } from '@features/auth/domain/usecases/restore-session'
 import { SignIn } from '@features/auth/domain/usecases/sign-in'
+import { SignInWithGoogle } from '@features/auth/domain/usecases/sign-in-with-google'
 import { SignOut } from '@features/auth/domain/usecases/sign-out'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 
@@ -24,6 +26,7 @@ export interface Container {
   readonly authRepository: AuthRepository
   readonly sessionStorage: SessionStorage
   readonly signIn: SignIn
+  readonly signInWithGoogle: SignInWithGoogle
   readonly signOut: SignOut
   readonly restoreSession: RestoreSession
   readonly register: Register
@@ -83,12 +86,14 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const captcha: CaptchaSolver =
     overrides.captcha ?? new AltchaCaptchaSolver(() => http.get<Challenge>('/captcha/challenge'))
   const authRepository: AuthRepository = new HttpAuthRepository(http, captcha)
+  const google = new ExpoGoogleAuthGateway(config.apiBaseUrl, authRepository)
 
   return {
     http,
     authRepository,
     sessionStorage,
     signIn: new SignIn(authRepository, sessionStorage),
+    signInWithGoogle: new SignInWithGoogle(google, sessionStorage),
     signOut: new SignOut(authRepository, sessionStorage),
     restoreSession: new RestoreSession(authRepository, sessionStorage),
     register: new Register(authRepository),

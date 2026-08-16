@@ -105,4 +105,49 @@ describe('LoginScreen', () => {
     await fireEvent.press(screen.getByText('¿Has olvidado tu contraseña?'))
     expect(global.routerMock.push).toHaveBeenCalledWith('/password-reset')
   })
+
+  it('entra con Google y guarda la sesión', async () => {
+    const signInWithGoogle = { execute: jest.fn().mockResolvedValue(ok(SESSION)) }
+    await renderWithContainer(<LoginScreen />, {
+      signIn: signInThatReturns() as never,
+      signInWithGoogle: signInWithGoogle as never,
+    })
+
+    await fireEvent.press(screen.getByLabelText('Continuar con Google'))
+
+    await waitFor(() => expect(useSessionStore.getState().status).toBe('authenticated'))
+    expect(global.routerMock.replace).toHaveBeenCalledWith('/')
+  })
+
+  it('no muestra ningún error cuando se cancela el acceso con Google', async () => {
+    const signInWithGoogle = {
+      execute: jest.fn().mockResolvedValue(err(new AppError('CANCELLED', 'Has cancelado el acceso con Google.'))),
+    }
+    await renderWithContainer(<LoginScreen />, {
+      signIn: signInThatReturns() as never,
+      signInWithGoogle: signInWithGoogle as never,
+    })
+
+    await fireEvent.press(screen.getByLabelText('Continuar con Google'))
+
+    // Quien cierra la pestaña ya sabe lo que ha hecho: un aviso rojo sobraría.
+    await waitFor(() => expect(signInWithGoogle.execute).toHaveBeenCalled())
+    expect(screen.queryByText('Has cancelado el acceso con Google.')).toBeNull()
+  })
+
+  it('explica por qué el acceso con Google no se pudo completar', async () => {
+    const signInWithGoogle = {
+      execute: jest.fn().mockResolvedValue(
+        err(new AppError('CONFLICT', 'Ya existe una cuenta con ese correo.')),
+      ),
+    }
+    await renderWithContainer(<LoginScreen />, {
+      signIn: signInThatReturns() as never,
+      signInWithGoogle: signInWithGoogle as never,
+    })
+
+    await fireEvent.press(screen.getByLabelText('Continuar con Google'))
+
+    expect(await screen.findByText('Ya existe una cuenta con ese correo.')).toBeTruthy()
+  })
 })

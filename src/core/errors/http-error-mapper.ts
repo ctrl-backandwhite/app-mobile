@@ -18,6 +18,7 @@ const FALLBACK: Record<AppErrorCode, string> = {
   RATE_LIMITED: 'Demasiados intentos. Inténtalo de nuevo en unos minutos.',
   VALIDATION: 'Revisa los datos introducidos.',
   CAPTCHA_FAILED: 'No se pudo completar la verificación de seguridad.',
+  CANCELLED: 'Has cancelado la operación.',
   NOT_FOUND: 'No se ha encontrado el recurso solicitado.',
   CONFLICT: 'La operación entra en conflicto con el estado actual.',
   NETWORK: 'No hay conexión con el servidor.',

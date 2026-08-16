@@ -10,6 +10,7 @@ export type AppErrorCode =
   | 'RATE_LIMITED'
   | 'VALIDATION'
   | 'CAPTCHA_FAILED'
+  | 'CANCELLED'
   | 'NOT_FOUND'
   | 'CONFLICT'
   | 'NETWORK'
