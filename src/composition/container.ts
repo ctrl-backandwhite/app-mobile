@@ -7,6 +7,10 @@ import { ExpoSecretStore } from '@core/storage/secure-store.adapter'
 import { SecretStore } from '@core/storage/ports'
 import { HttpCatalogRepository } from '@features/catalog/data/repositories/http-catalog.repository'
 import { AsyncCartStorage } from '@features/cart/data/repositories/async-cart.storage'
+import { HttpCartMerger } from '@features/cart/data/repositories/http-cart-merger'
+import { HttpCartStorage } from '@features/cart/data/repositories/http-cart.storage'
+import { SessionAwareCartStorage } from '@features/cart/data/repositories/session-aware-cart.storage'
+import { MergeGuestLines } from '@features/cart/domain/usecases/merge-guest-lines'
 import { HttpQuoteRepository } from '@features/cart/data/repositories/http-quote.repository'
 import { HttpSavedCartRepository } from '@features/cart/data/repositories/http-saved-cart.repository'
 import { AddToCart } from '@features/cart/domain/usecases/add-to-cart'
@@ -78,6 +82,9 @@ export interface Container {
   readonly saveForLater: SaveForLater
   readonly moveToCart: MoveToCart
   readonly mergeGuestCart: MergeGuestCart
+  readonly mergeGuestLines: MergeGuestLines
+  /** Expuesto para poder fundir la cesta del invitado justo al iniciar sesión. */
+  readonly cartStorage: SessionAwareCartStorage
 }
 
 /**
@@ -133,7 +140,13 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const google = new ExpoGoogleAuthGateway(config.apiBaseUrl, authRepository)
   const catalogRepository: CatalogRepository = new HttpCatalogRepository(http)
   const favoritesRepository: FavoritesRepository = new HttpFavoritesRepository(http)
-  const cartStorage = new AsyncCartStorage(new AsyncPreferenceStore())
+  // La cesta va al servidor cuando hay sesión y al dispositivo cuando no. Se decide en cada
+  // operación, no al construir el contenedor: la sesión cambia con la aplicación abierta.
+  const cartStorage = new SessionAwareCartStorage(
+    new AsyncCartStorage(new AsyncPreferenceStore()),
+    new HttpCartStorage(http),
+    () => useSessionStore.getState().status === 'authenticated',
+  )
   const savedCartRepository = new HttpSavedCartRepository(http)
   const quoteRepository = new HttpQuoteRepository(http)
 
@@ -168,5 +181,7 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     saveForLater: new SaveForLater(cartStorage, savedCartRepository),
     moveToCart: new MoveToCart(cartStorage, savedCartRepository),
     mergeGuestCart: new MergeGuestCart(savedCartRepository),
+    mergeGuestLines: new MergeGuestLines(new HttpCartMerger(http)),
+    cartStorage,
   }
 }

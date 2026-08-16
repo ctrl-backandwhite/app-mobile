@@ -20,3 +20,23 @@ export function toCartLine(dto: CartLineDto): CartLine {
     moq: dto.moq ?? undefined,
   }
 }
+
+/**
+ * Cuerpo que espera el backend al guardar una línea.
+ *
+ * No se envía ningún precio: el servidor lo resuelve del catálogo. Mandarlo desde el cliente sería
+ * un dato manipulable y, además, quedaría congelado en el momento de añadir.
+ */
+export function toCartLinePayload(line: CartLine): Record<string, unknown> {
+  return {
+    productId: line.productId,
+    variantId: line.variantId,
+    sku: line.sku,
+    slug: line.slug,
+    title: line.title,
+    image: line.image,
+    variantLabel: line.variantLabel,
+    quantity: line.quantity,
+    moq: line.moq,
+  }
+}
