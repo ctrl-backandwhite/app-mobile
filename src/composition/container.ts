@@ -24,6 +24,12 @@ import { RemoveFromCart } from '@features/cart/domain/usecases/remove-from-cart'
 import { SaveForLater } from '@features/cart/domain/usecases/save-for-later'
 import { UpdateQuantity } from '@features/cart/domain/usecases/update-quantity'
 import { AsyncPreferenceStore } from '@core/storage/async-storage.adapter'
+import { HttpOrdersRepository } from '@features/orders/data/repositories/http-orders.repository'
+import { OrdersRepository } from '@features/orders/domain/ports/orders-repository'
+import { CancelOrder } from '@features/orders/domain/usecases/cancel-order'
+import { GetOrderDetail } from '@features/orders/domain/usecases/get-order-detail'
+import { GetOrderTracking } from '@features/orders/domain/usecases/get-order-tracking'
+import { ListOrders } from '@features/orders/domain/usecases/list-orders'
 import { HttpFavoritesRepository } from '@features/favorites/data/repositories/http-favorites.repository'
 import { FavoritesRepository } from '@features/favorites/domain/ports/favorites-repository'
 import { ListFavoriteIds } from '@features/favorites/domain/usecases/list-favorite-ids'
@@ -85,6 +91,10 @@ export interface Container {
   readonly mergeGuestLines: MergeGuestLines
   /** Expuesto para poder fundir la cesta del invitado justo al iniciar sesión. */
   readonly cartStorage: SessionAwareCartStorage
+  readonly listOrders: ListOrders
+  readonly getOrderDetail: GetOrderDetail
+  readonly getOrderTracking: GetOrderTracking
+  readonly cancelOrder: CancelOrder
 }
 
 /**
@@ -149,6 +159,7 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   )
   const savedCartRepository = new HttpSavedCartRepository(http)
   const quoteRepository = new HttpQuoteRepository(http)
+  const ordersRepository: OrdersRepository = new HttpOrdersRepository(http)
 
   return {
     http,
@@ -183,5 +194,9 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     mergeGuestCart: new MergeGuestCart(savedCartRepository),
     mergeGuestLines: new MergeGuestLines(new HttpCartMerger(http)),
     cartStorage,
+    listOrders: new ListOrders(ordersRepository),
+    getOrderDetail: new GetOrderDetail(ordersRepository),
+    getOrderTracking: new GetOrderTracking(ordersRepository),
+    cancelOrder: new CancelOrder(ordersRepository),
   }
 }

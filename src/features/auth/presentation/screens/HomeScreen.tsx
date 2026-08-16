@@ -72,7 +72,12 @@ export function HomeScreen(): ReactElement {
         </View>
       </Card>
 
-      <View className="mt-6">
+      <View className="mt-6 gap-3">
+        <Button
+          title="Mis pedidos"
+          onPress={() => router.push('/orders')}
+          variant="outline"
+        />
         <Button title="Cerrar sesión" onPress={leave} loading={leaving} variant="outline" />
       </View>
     </Screen>
