@@ -36,7 +36,7 @@ jobs:
       - name: Lint
         run: npm run lint
       - name: Pruebas con cobertura
-        run: npm test -- --coverage
+        run: npm test -- --coverage --maxWorkers=2
 
   apk_android:
     name: APK Android (perfil preview)

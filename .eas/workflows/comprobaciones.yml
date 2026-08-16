@@ -42,4 +42,6 @@ jobs:
       # El umbral del 90 % en las cuatro métricas vive en jest.config.js. Al pedir la cobertura, un
       # descenso rompe la ejecución aquí y no en revisión.
       - name: Pruebas con cobertura
-        run: npm test -- --coverage
+        # --maxWorkers=2: la máquina de EAS tiene menos núcleos que un equipo de trabajo y, con la
+        # caché de transformación fría, demasiados procesos en paralelo se estorban entre sí.
+        run: npm test -- --coverage --maxWorkers=2

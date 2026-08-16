@@ -25,6 +25,14 @@ module.exports = {
     '^@shared/(.*)$': '<rootDir>/src/shared/$1',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  /**
+   * Los 5 segundos que trae Jest por defecto se quedan cortos en la PRIMERA ejecución sobre una
+   * máquina limpia: con la caché de transformación fría, montar una pantalla entera con React
+   * Native Testing Library puede pasar de ese margen y la prueba falla por tiempo aunque el código
+   * esté bien. En integración continua la caché siempre está fría, así que ocurriría en cada
+   * ejecución; en local solo la primera vez, que es lo que lo hace difícil de diagnosticar.
+   */
+  testTimeout: 30000,
   collectCoverageFrom: [
     'src/**/*.{ts,tsx}',
     '!src/**/index.ts',
