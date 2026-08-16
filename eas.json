@@ -9,7 +9,7 @@
       "distribution": "internal",
       "environment": "development",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "http://10.0.2.2:18082"
+        "EXPO_PUBLIC_API_BASE_URL": "https://back-dropshipping-des.up.railway.app"
       },
       "android": {
         "image": "latest"
@@ -22,7 +22,7 @@
       "distribution": "internal",
       "environment": "preview",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://back-pre.up.railway.app"
+        "EXPO_PUBLIC_API_BASE_URL": "https://mic-dropshipping-pre.up.railway.app"
       },
       "android": {
         "buildType": "apk",
@@ -36,7 +36,7 @@
       "autoIncrement": true,
       "environment": "production",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://back-pro.up.railway.app"
+        "EXPO_PUBLIC_API_BASE_URL": "https://back-dropshipping-pro.up.railway.app"
       },
       "android": {
         "image": "latest"
