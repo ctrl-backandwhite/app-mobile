@@ -77,7 +77,7 @@ Requiere `MOBILE_OAUTH_CALLBACK_URL` en el backend, con el mismo valor que el `s
 npm run typecheck && npm run lint && npm test
 ```
 
-Cobertura mínima del 80 %, con el umbral configurado para que su incumplimiento rompa la ejecución.
+Cobertura mínima del 90 % en las cuatro métricas, con el umbral configurado para que su incumplimiento rompa la ejecución.
 No des nada por terminado sin haber visto esa salida en verde.
 
 ## Git
