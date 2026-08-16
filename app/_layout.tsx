@@ -16,6 +16,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 
 import { ContainerProvider } from '@composition/container.provider'
 import { getAppConfig } from '@core/config/env'
+import { startCapturingIncomingLinks } from '@core/linking/incoming-link'
 import { useBootstrapSession } from '@features/auth/presentation/hooks/use-bootstrap-session'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 import { CardPaymentProvider } from '@features/checkout/presentation/components'
@@ -25,6 +26,10 @@ import { useLoadFavorites } from '@features/favorites/presentation/hooks/use-loa
 // Retener el arranque evita el salto tipográfico: sin esto la primera pintura sale con la fuente
 // del sistema y se recompone al entrar Roboto.
 void SplashScreen.preventAutoHideAsync()
+
+// Antes de pintar nada, y a propósito: el enlace de vuelta del acceso llega una sola vez y hay que
+// estar escuchando desde antes de que expo-router navegue con él.
+startCapturingIncomingLinks()
 
 /**
  * Restaura la sesión y mantiene el arranque en pantalla hasta saber si hay una.

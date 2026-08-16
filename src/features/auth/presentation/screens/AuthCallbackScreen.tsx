@@ -1,9 +1,9 @@
-import * as Linking from 'expo-linking'
 import { router } from 'expo-router'
-import { ReactElement, useEffect, useMemo, useState } from 'react'
+import { ReactElement, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { ActivityIndicator, Text, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
+import { capturedAuthLink, onAuthLink } from '@core/linking/incoming-link'
 import { logger } from '@core/logger/logger'
 import { Alert, Button, Screen } from '@ds/components'
 import { readSocialCallback } from '@features/auth/domain/policies/social-callback'
@@ -21,28 +21,15 @@ import { useSessionStore } from '../state/session.store'
 export function AuthCallbackScreen(): ReactElement {
   const { completeSocialLogin } = useContainer()
   const signedIn = useSessionStore((state) => state.signedIn)
-  const hookUrl = Linking.useURL()
-  const [received, setReceived] = useState<string | null>(null)
 
   /*
-   * Solo interesa el enlace de la vuelta del acceso, y hay que filtrarlo.
+   * El enlace se lee de donde quedó guardado al llegar, no se escucha desde aquí.
    *
-   * En una compilación de desarrollo la aplicación se abre a través del cliente de Expo, así que
-   * tanto `useURL` como `getInitialURL` devuelven SU enlace
-   * (`nx036://expo-development-client/?url=…`) y no el del proveedor, aunque Android haya entregado
-   * el correcto. Quedarse con el primero que llegue deja la pantalla esperando una sesión que está
-   * en otro enlace.
+   * Cuando el sistema lo entrega a la aplicación viva, el evento se emite una sola vez y lo recoge
+   * expo-router para navegar hasta esta pantalla; para cuando ella se monta, ya ha pasado. Escuchar
+   * aquí era llegar tarde siempre.
    */
-  useEffect(() => {
-    function consider(candidate: string | null | undefined): void {
-      if (candidate?.includes('auth/callback')) setReceived(candidate)
-    }
-    Linking.getInitialURL().then(consider).catch(() => undefined)
-    const subscription = Linking.addEventListener('url', (event) => consider(event.url))
-    return () => subscription.remove()
-  }, [])
-
-  const url = received ?? (hookUrl?.includes('auth/callback') ? hookUrl : null)
+  const url = useSyncExternalStore(onAuthLink, capturedAuthLink)
 
   // Lo que dice el enlace se deriva, no se guarda en estado: es una función de la URL y calcularlo
   // dentro de un efecto provocaría un pintado de más en cada vuelta.
@@ -59,7 +46,9 @@ export function AuthCallbackScreen(): ReactElement {
   }, [callback])
 
   useEffect(() => {
-    if (url) logger.info(`Vuelta del acceso social: ${url.replace(/token=[^&]+/g, 'token=***')}`)
+    // Se tapan los dos: un token de renovación en el registro del sistema vale tanto como el de
+    // acceso, y dura mucho más.
+    if (url) logger.info(`Vuelta del acceso social: ${url.replace(/(token|refresh)=[^&]+/g, '$1=***')}`)
   }, [url])
 
   useEffect(() => {
