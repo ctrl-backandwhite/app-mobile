@@ -61,5 +61,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint ."
   },
-  "private": true
+  "private": true,
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": ">=22.16.0"
+  }
 }

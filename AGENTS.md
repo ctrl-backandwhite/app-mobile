@@ -45,6 +45,11 @@ La regla la verifica `eslint-plugin-boundaries`: si el lint pasa, la arquitectur
 
 ## Dependencias
 
+- **Usa npm 10.9.2**, el que trae Node 22.16 y el que usa EAS. Está declarado en `packageManager`.
+  Instalar con npm 11 regenera el `package-lock.json` de otra forma —resuelve distinto las
+  dependencias opcionales nativas— y la integración continua falla con
+  «`npm ci` can only install packages when your package.json and package-lock.json are in sync».
+  Si te ocurre: `npx npm@10.9.2 install --package-lock-only`.
 - **Nunca `--legacy-peer-deps`.** Un `ERESOLVE` se resuelve alineando versiones o con `overrides`.
 - `npx expo install <paquete>` para todo lo que toque el runtime nativo, no `npm i`.
 - `npx expo install --check` dice qué versión toca. «Actual» es lo que el SDK soporta hoy.
