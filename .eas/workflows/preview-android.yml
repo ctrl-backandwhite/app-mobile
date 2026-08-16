@@ -37,6 +37,11 @@ jobs:
         run: npm run lint
       - name: Pruebas con cobertura
         run: npm test -- --coverage --maxWorkers=2
+      # La compilación puede terminar «con éxito» y dar una app que se cierra al abrirse: si la URL
+      # del backend no queda incrustada, no hay configuración que leer. Se comprueba antes de gastar
+      # una compilación entera.
+      - name: El paquete lleva la URL del backend
+        run: EXPO_PUBLIC_API_BASE_URL=https://mic-dropshipping-pre.up.railway.app ./scripts/verificar-bundle.sh
 
   apk_android:
     name: APK Android (perfil preview)
