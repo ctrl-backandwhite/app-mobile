@@ -68,6 +68,7 @@ import { SecureSessionStorage } from '@features/auth/data/repositories/secure-se
 import { AuthRepository } from '@features/auth/domain/ports/auth-repository'
 import { SessionStorage } from '@features/auth/domain/ports/session-storage'
 import { ActivateAccount } from '@features/auth/domain/usecases/activate-account'
+import { CompleteSocialLogin } from '@features/auth/domain/usecases/complete-social-login'
 import { ConfirmPasswordReset } from '@features/auth/domain/usecases/confirm-password-reset'
 import { Register } from '@features/auth/domain/usecases/register'
 import { RequestPasswordReset } from '@features/auth/domain/usecases/request-password-reset'
@@ -84,6 +85,7 @@ export interface Container {
   readonly sessionStorage: SessionStorage
   readonly signIn: SignIn
   readonly signInWithGoogle: SignInWithGoogle
+  readonly completeSocialLogin: CompleteSocialLogin
   readonly signOut: SignOut
   readonly restoreSession: RestoreSession
   readonly register: Register
@@ -201,6 +203,7 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     sessionStorage,
     signIn: new SignIn(authRepository, sessionStorage),
     signInWithGoogle: new SignInWithGoogle(google, sessionStorage),
+    completeSocialLogin: new CompleteSocialLogin(authRepository, sessionStorage),
     signOut: new SignOut(authRepository, sessionStorage),
     restoreSession: new RestoreSession(authRepository, sessionStorage),
     register: new Register(authRepository),
