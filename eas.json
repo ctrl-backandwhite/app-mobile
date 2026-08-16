@@ -44,6 +44,18 @@
       "ios": {
         "image": "latest"
       }
+    },
+    "emulador": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "environment": "development",
+      "env": {
+        "EXPO_PUBLIC_API_BASE_URL": "http://10.0.2.2:18082"
+      },
+      "android": {
+        "image": "latest",
+        "buildType": "apk"
+      }
     }
   },
   "submit": {
