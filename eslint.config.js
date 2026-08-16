@@ -12,7 +12,40 @@ const boundaries = require('eslint-plugin-boundaries')
 module.exports = [
   ...expo,
   {
-    ignores: ['node_modules/**', '.expo/**', 'dist/**', 'android/**', 'ios/**', 'expo-env.d.ts'],
+    ignores: [
+      'node_modules/**',
+      '.expo/**',
+      'dist/**',
+      'coverage/**',
+      'android/**',
+      'ios/**',
+      'expo-env.d.ts',
+    ],
+  },
+  {
+    // Los globales de Jest se declaran aquí porque la configuración plana de ESLint 9 ya no
+    // reconoce los comentarios `/* eslint-env jest */`.
+    files: [
+      '**/__tests__/**/*.{ts,tsx}',
+      '**/*.test.{ts,tsx}',
+      '**/testing/**/*.{ts,tsx}',
+      '__mocks__/**/*.js',
+      'jest.setup.js',
+    ],
+    languageOptions: {
+      globals: {
+        jest: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        global: 'readonly',
+      },
+    },
   },
   {
     files: ['**/*.{js,jsx,ts,tsx}'],

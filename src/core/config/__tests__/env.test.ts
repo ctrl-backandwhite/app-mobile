@@ -29,3 +29,19 @@ describe('readConfig', () => {
     expect(() => readConfig({})).toThrow(/EXPO_PUBLIC_API_BASE_URL/)
   })
 })
+
+describe('getAppConfig', () => {
+  it('lee del entorno y memoriza el resultado', () => {
+    process.env.EXPO_PUBLIC_API_BASE_URL = 'https://api.entorno.test/'
+    // El valor se memoriza en el módulo: hay que partir de una copia limpia para observarlo.
+    jest.resetModules()
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getAppConfig } = require('../env') as typeof import('../env')
+
+    const primera = getAppConfig()
+
+    expect(primera.apiBaseUrl).toBe('https://api.entorno.test')
+    // La segunda llamada devuelve exactamente el mismo objeto, no uno equivalente.
+    expect(getAppConfig()).toBe(primera)
+  })
+})

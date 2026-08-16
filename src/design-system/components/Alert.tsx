@@ -16,11 +16,23 @@ const STYLES: Record<AlertVariant, { container: string; label: string }> = {
   success: { container: 'border-success/30 bg-success/[0.12]', label: 'text-success' },
 }
 
+/**
+ * `accessible` no es opcional aquí: sin él la vista no es un elemento accesible, así que el rol de
+ * aviso se ignora y un lector de pantalla lee el texto suelto en vez de anunciarlo como alerta.
+ * `accessibilityLiveRegion` hace que Android lo lea en cuanto aparece, que es justo lo que se espera
+ * de un error de formulario que surge tras pulsar un botón.
+ */
 export function Alert({ variant, message }: Props): ReactElement {
   const style = STYLES[variant]
 
   return (
-    <View accessibilityRole="alert" className={`rounded-field border px-3 py-2 ${style.container}`}>
+    <View
+      accessible
+      accessibilityRole="alert"
+      accessibilityLiveRegion={variant === 'error' ? 'assertive' : 'polite'}
+      accessibilityLabel={message}
+      className={`rounded-field border px-3 py-2 ${style.container}`}
+    >
       <Text className={`text-[13px] ${style.label}`}>{message}</Text>
     </View>
   )

@@ -1,3 +1,6 @@
+// axios expone `create` como exportación con nombre además de como método del objeto por defecto, y
+// la regla lo confunde con un error. Aquí `axios.create` es la forma idiomática documentada.
+/* eslint-disable import/no-named-as-default-member */
 import axios, { AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
 
 import { mapHttpError } from '@core/errors/http-error-mapper'
