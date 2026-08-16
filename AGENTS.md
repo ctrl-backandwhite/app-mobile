@@ -59,6 +59,18 @@ La regla la verifica `eslint-plugin-boundaries`: si el lint pasa, la arquitectur
 - `accessibilityLabel` en todo campo, `accessibilityRole` en pulsables y avisos.
 - Los mensajes de error los traduce el backend vía `X-Lang`; los textos locales son de reserva.
 
+## Acceso con Google
+
+La aplicación abre `${API}/oauth2/authorization/google?client=mobile` en la vista de navegador del
+sistema y recibe la vuelta en el enlace profundo `nx036://auth/callback`.
+
+`client=mobile` es un **identificador**, nunca una URL: el backend lo traduce a uno de sus destinos
+configurados. No cambies esto por enviar la dirección de retorno — convertiría el backend en un
+redirector abierto, y con él cualquier cuenta en un objetivo.
+
+Requiere `MOBILE_OAUTH_CALLBACK_URL` en el backend, con el mismo valor que el `scheme` de
+`app.config.ts`.
+
 ## Verificación
 
 ```bash
