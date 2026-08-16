@@ -144,10 +144,7 @@ export function CartScreen(): ReactElement {
           <CartSummary
             quote={quote.data ?? undefined}
             unitCount={totalUnits(lines)}
-            onCheckout={() => {
-              // La tramitación llega en la fase siguiente.
-            }}
-            checkoutDisabled
+            onCheckout={() => router.push('/checkout')}
           />
         </View>
       ) : null}

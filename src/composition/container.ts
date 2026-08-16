@@ -24,6 +24,22 @@ import { RemoveFromCart } from '@features/cart/domain/usecases/remove-from-cart'
 import { SaveForLater } from '@features/cart/domain/usecases/save-for-later'
 import { UpdateQuantity } from '@features/cart/domain/usecases/update-quantity'
 import { AsyncPreferenceStore } from '@core/storage/async-storage.adapter'
+import { ExpoPaymentApprovalGateway } from '@features/checkout/data/repositories/expo-payment-approval.gateway'
+import { HttpAddressRepository } from '@features/checkout/data/repositories/http-address.repository'
+import { HttpCheckoutRepository } from '@features/checkout/data/repositories/http-checkout.repository'
+import { HttpPaymentIntentRepository } from '@features/checkout/data/repositories/http-payment-intent.repository'
+import { HttpPaymentMethodsRepository } from '@features/checkout/data/repositories/http-payment-methods.repository'
+import { HttpShippingRepository } from '@features/checkout/data/repositories/http-shipping.repository'
+import { HttpWalletRepository } from '@features/checkout/data/repositories/http-wallet.repository'
+import { CreateAddress } from '@features/checkout/domain/usecases/create-address'
+import { GetWalletBalance } from '@features/checkout/domain/usecases/get-wallet-balance'
+import { ListAddresses } from '@features/checkout/domain/usecases/list-addresses'
+import { ListPaymentMethods } from '@features/checkout/domain/usecases/list-payment-methods'
+import { ListRegions } from '@features/checkout/domain/usecases/list-regions'
+import { PayWithProvider } from '@features/checkout/domain/usecases/pay-with-provider'
+import { PayWithSavedCard } from '@features/checkout/domain/usecases/pay-with-saved-card'
+import { PlaceOrder } from '@features/checkout/domain/usecases/place-order'
+import { QuoteShipping } from '@features/checkout/domain/usecases/quote-shipping'
 import { HttpOrdersRepository } from '@features/orders/data/repositories/http-orders.repository'
 import { OrdersRepository } from '@features/orders/domain/ports/orders-repository'
 import { CancelOrder } from '@features/orders/domain/usecases/cancel-order'
@@ -95,6 +111,15 @@ export interface Container {
   readonly getOrderDetail: GetOrderDetail
   readonly getOrderTracking: GetOrderTracking
   readonly cancelOrder: CancelOrder
+  readonly listAddresses: ListAddresses
+  readonly createAddress: CreateAddress
+  readonly listRegions: ListRegions
+  readonly quoteShipping: QuoteShipping
+  readonly placeOrder: PlaceOrder
+  readonly getWalletBalance: GetWalletBalance
+  readonly listPaymentMethods: ListPaymentMethods
+  readonly payWithSavedCard: PayWithSavedCard
+  readonly payWithProvider: PayWithProvider
 }
 
 /**
@@ -160,6 +185,7 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const savedCartRepository = new HttpSavedCartRepository(http)
   const quoteRepository = new HttpQuoteRepository(http)
   const ordersRepository: OrdersRepository = new HttpOrdersRepository(http)
+  const paymentMethodsRepository = new HttpPaymentMethodsRepository(http)
 
   return {
     http,
@@ -198,5 +224,19 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     getOrderDetail: new GetOrderDetail(ordersRepository),
     getOrderTracking: new GetOrderTracking(ordersRepository),
     cancelOrder: new CancelOrder(ordersRepository),
+    listAddresses: new ListAddresses(new HttpAddressRepository(http)),
+    createAddress: new CreateAddress(new HttpAddressRepository(http)),
+    listRegions: new ListRegions(new HttpShippingRepository(http)),
+    quoteShipping: new QuoteShipping(new HttpShippingRepository(http)),
+    placeOrder: new PlaceOrder(new HttpCheckoutRepository(http)),
+    getWalletBalance: new GetWalletBalance(new HttpWalletRepository(http)),
+    listPaymentMethods: new ListPaymentMethods(paymentMethodsRepository),
+    payWithSavedCard: new PayWithSavedCard(paymentMethodsRepository),
+    // PayPal y tarjeta nueva pasan por la pasarela: se abre su página en el navegador del sistema y
+    // al volver se confirma contra el backend, que es quien decide si el dinero llegó.
+    payWithProvider: new PayWithProvider(
+      new HttpPaymentIntentRepository(http),
+      new ExpoPaymentApprovalGateway(),
+    ),
   }
 }
