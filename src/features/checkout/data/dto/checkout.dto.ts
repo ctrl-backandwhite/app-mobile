@@ -105,9 +105,27 @@ export const savedCardChargeDto = z.object({
   paymentId: z.string().nullable().optional(),
 })
 
+/**
+ * Ajustes del cobro con tarjeta.
+ *
+ * `enabled` cae a falso cuando la respuesta no lo dice: ante la duda, mejor no ofrecer un formulario
+ * de tarjeta que después no va a poder guardar nada.
+ */
+export const billingConfigDto = z.object({
+  publishableKey: z.string().nullable().optional(),
+  enabled: z.boolean().default(false),
+})
+
+/**
+ * Intento de guardado de tarjeta. El secreto es OBLIGATORIO y sin valor por omisión: sin él no hay
+ * nada que confirmar contra la pasarela, y tolerarlo vacío daría por bueno un alta que no existe.
+ */
+export const setupIntentDto = z.object({ clientSecret: z.string().min(1) })
+
 export type AddressDto = z.infer<typeof addressDto>
 export type ShippingQuoteDto = z.infer<typeof shippingQuoteDto>
 export type PlacedOrderDto = z.infer<typeof placedOrderDto>
 export type WalletDto = z.infer<typeof walletDto>
 export type PaymentMethodDto = z.infer<typeof paymentMethodDto>
 export type SavedCardChargeDto = z.infer<typeof savedCardChargeDto>
+export type BillingConfigDto = z.infer<typeof billingConfigDto>

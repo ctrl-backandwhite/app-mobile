@@ -19,6 +19,7 @@ interface Props {
   walletEnough: boolean
   loading?: boolean
   onSelect: (selection: PaymentSelection) => void
+  onAddCard: () => void
 }
 
 function Option({
@@ -59,10 +60,9 @@ function Option({
 /**
  * Formas de pago disponibles EN LA APLICACIÓN.
  *
- * No están todas las del escritorio y es a propósito: dar de alta una tarjeta nueva y aprobar un
- * pago en PayPal necesitan pasos que la app todavía no puede completar, y ofrecer un botón que
- * termina en un pedido sin cobrar es peor que no ofrecerlo. Se enseñan, se explican y no se dejan
- * pulsar.
+ * No están todas las del escritorio y es a propósito: aprobar un pago en PayPal necesita pasos que
+ * la app todavía no puede completar, y ofrecer un botón que termina en un pedido sin cobrar es peor
+ * que no ofrecerlo. Se enseña, se explica y no se deja pulsar.
  */
 export function PaymentPicker({
   methods,
@@ -71,6 +71,7 @@ export function PaymentPicker({
   walletEnough,
   loading = false,
   onSelect,
+  onAddCard,
 }: Props): ReactElement {
   const walletSelected = selection?.kind === 'WALLET'
 
@@ -110,11 +111,19 @@ export function PaymentPicker({
 
       <Option
         label="PayPal"
-        hint={CHECKOUT_MESSAGES.paypalUnavailable}
-        selected={false}
-        disabled
-        onPress={(): void => undefined}
+        hint={CHECKOUT_MESSAGES.paypalRedirect}
+        selected={selection?.kind === 'PAYPAL'}
+        onPress={(): void => onSelect({ kind: 'PAYPAL' })}
       />
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Añadir una tarjeta"
+        onPress={onAddCard}
+        className="rounded-field border border-dashed border-base-300 p-3"
+      >
+        <Text className="text-[13px] text-primary">Añadir tarjeta</Text>
+      </Pressable>
     </View>
   )
 }

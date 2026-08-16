@@ -72,7 +72,7 @@ describe('PayWithSavedCard', () => {
   })
 
   it('deja el cobro pendiente cuando el banco pide autenticación y no hay quien la haga', async () => {
-    // Es la situación de hoy: falta el SDK nativo de la pasarela. Mejor decirlo que fingir un cobro.
+    // Montado sin autenticador. Mejor decir que falta un paso que fingir un cobro que no ha ocurrido.
     const repository = new FakePaymentMethodsRepository({
       charge: { status: 'requires_action', clientSecret: 'cs_1', paymentId: 'pay-1' },
     })

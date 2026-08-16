@@ -273,14 +273,38 @@ describe('CheckoutScreen', () => {
     expect(global.routerMock.push).toHaveBeenCalledWith('/checkout/address')
   })
 
-  it('avisa de que PayPal todavía no se puede completar desde la app', async () => {
+  it('lleva a dar de alta una tarjeta', async () => {
     await renderCheckout(<CheckoutScreen />, deps())
 
-    // Se enseña la opción para no esconder un método que existe, pero no se deja pulsar: un pedido
-    // creado sin poder aprobarse es peor que no ofrecerlo.
-    const paypal = await screen.findByLabelText('Pagar con PayPal')
-    expect(paypal).toBeDisabled()
-    expect(screen.getByText(CHECKOUT_MESSAGES.paypalUnavailable)).toBeTruthy()
+    await fireEvent.press(await screen.findByLabelText('Añadir una tarjeta'))
+
+    expect(global.routerMock.push).toHaveBeenCalledWith('/checkout/add-card')
+  })
+
+  it('permite pagar con PayPal y confirma contra el backend al volver', async () => {
+    const payWithProvider = { execute: jest.fn().mockResolvedValue(ok('paid')) }
+    const container = deps({ payWithProvider })
+    await renderCheckout(<CheckoutScreen />, container)
+
+    await fireEvent.press(await screen.findByLabelText('Pagar con PayPal'))
+    await fireEvent.press(screen.getByText('Confirmar pedido'))
+
+    await waitFor(() => expect(payWithProvider.execute).toHaveBeenCalledWith(expect.any(String), 'PAYPAL'))
+    // Solo se vacía la cesta cuando el pago está confirmado por el servidor.
+    await waitFor(() => expect(container.clearCart.execute).toHaveBeenCalled())
+  })
+
+  it('no vacía la cesta si se cancela el pago en PayPal', async () => {
+    // Cancelar deja el pedido pendiente: la cesta tiene que seguir ahí para poder reintentar.
+    const payWithProvider = { execute: jest.fn().mockResolvedValue(ok('cancelled')) }
+    const container = deps({ payWithProvider })
+    await renderCheckout(<CheckoutScreen />, container)
+
+    await fireEvent.press(await screen.findByLabelText('Pagar con PayPal'))
+    await fireEvent.press(screen.getByText('Confirmar pedido'))
+
+    await waitFor(() => expect(payWithProvider.execute).toHaveBeenCalled())
+    expect(container.clearCart.execute).not.toHaveBeenCalled()
   })
 
   it('avisa cuando la cesta está vacía', async () => {

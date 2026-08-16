@@ -19,7 +19,10 @@ export const CHECKOUT_MESSAGES = {
   customsBlocked:
     'Este pedido supera el límite de importación del destino. Divídelo en pedidos más pequeños.',
   cardAuthentication:
-    'Tu banco pide una autenticación adicional que la app aún no puede completar. Termina el pago desde el escritorio; el pedido ya está creado y sin cobrar.',
+    'Tu banco pide una autenticación que no se ha completado. El pedido está creado y sin cobrar: vuelve a intentarlo cuando quieras.',
+  /** Se avisa antes de salir: la persona debe saber que va a cambiar de aplicación y volverá. */
+  paypalCancelled: 'Has cancelado el pago. Tu pedido queda pendiente y puedes reintentarlo.',
+  paypalRedirect: 'Se abrirá PayPal para autorizar el pago y volverás aquí al terminar.',
   paypalUnavailable:
     'El pago con PayPal todavía no se puede completar desde la app. Usa el monedero o una tarjeta guardada.',
 } as const

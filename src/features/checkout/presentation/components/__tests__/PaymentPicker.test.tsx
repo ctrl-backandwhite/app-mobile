@@ -12,6 +12,7 @@ describe('PaymentPicker', () => {
         methods={[aPaymentMethod({ expMonth: 4, expYear: 2027 })]}
         walletEnough
         onSelect={jest.fn()}
+        onAddCard={jest.fn()}
       />,
     )
 
@@ -22,7 +23,7 @@ describe('PaymentPicker', () => {
   it('elige el método guardado al pulsarlo', async () => {
     const onSelect = jest.fn()
     await render(
-      <PaymentPicker methods={[aPaymentMethod({ id: 'pm_7' })]} walletEnough onSelect={onSelect} />,
+      <PaymentPicker methods={[aPaymentMethod({ id: 'pm_7' })]} walletEnough onSelect={onSelect} onAddCard={jest.fn()} />,
     )
 
     await fireEvent.press(screen.getByLabelText('Pagar con VISA •••• 4242'))
@@ -37,6 +38,7 @@ describe('PaymentPicker', () => {
         wallet={aWalletBalance({ balanceFormatted: '92,30 €' })}
         walletEnough
         onSelect={jest.fn()}
+        onAddCard={jest.fn()}
       />,
     )
 
@@ -45,7 +47,7 @@ describe('PaymentPicker', () => {
 
   it('avisa del saldo corto sobre la propia opción del monedero', async () => {
     await render(
-      <PaymentPicker methods={[]} wallet={aWalletBalance()} walletEnough={false} onSelect={jest.fn()} />,
+      <PaymentPicker methods={[]} wallet={aWalletBalance()} walletEnough={false} onSelect={jest.fn()} onAddCard={jest.fn()} />,
     )
 
     expect(screen.getByText(CHECKOUT_MESSAGES.insufficientWallet)).toBeTruthy()
@@ -53,25 +55,37 @@ describe('PaymentPicker', () => {
 
   it('elige el monedero al pulsarlo', async () => {
     const onSelect = jest.fn()
-    await render(<PaymentPicker methods={[]} walletEnough onSelect={onSelect} />)
+    await render(<PaymentPicker methods={[]} walletEnough onSelect={onSelect} onAddCard={jest.fn()} />)
 
     await fireEvent.press(screen.getByLabelText('Pagar con Monedero'))
 
     expect(onSelect).toHaveBeenCalledWith({ kind: 'WALLET' })
   })
 
-  it('enseña PayPal pero no deja elegirlo todavía', async () => {
+  it('deja elegir PayPal y avisa de que se saldrá de la aplicación', async () => {
     const onSelect = jest.fn()
-    await render(<PaymentPicker methods={[]} walletEnough onSelect={onSelect} />)
+    await render(<PaymentPicker methods={[]} walletEnough onSelect={onSelect} onAddCard={jest.fn()} />)
 
     await fireEvent.press(screen.getByLabelText('Pagar con PayPal'))
 
-    expect(onSelect).not.toHaveBeenCalled()
-    expect(screen.getByText(CHECKOUT_MESSAGES.paypalUnavailable)).toBeTruthy()
+    expect(onSelect).toHaveBeenCalledWith({ kind: 'PAYPAL' })
+    // El aviso importa: cambiar de aplicación sin esperarlo hace dudar de si el pago se ha hecho.
+    expect(screen.getByText(CHECKOUT_MESSAGES.paypalRedirect)).toBeTruthy()
+  })
+
+  it('lleva a dar de alta una tarjeta nueva', async () => {
+    const onAddCard = jest.fn()
+    await render(
+      <PaymentPicker methods={[]} walletEnough onSelect={jest.fn()} onAddCard={onAddCard} />,
+    )
+
+    await fireEvent.press(screen.getByLabelText('Añadir una tarjeta'))
+
+    expect(onAddCard).toHaveBeenCalled()
   })
 
   it('dice que está cargando los métodos', async () => {
-    await render(<PaymentPicker methods={[]} walletEnough loading onSelect={jest.fn()} />)
+    await render(<PaymentPicker methods={[]} walletEnough loading onSelect={jest.fn()} onAddCard={jest.fn()} />)
 
     expect(screen.getByText('Cargando métodos…')).toBeTruthy()
   })

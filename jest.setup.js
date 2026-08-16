@@ -7,6 +7,17 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 )
 
+/**
+ * El SDK de la pasarela es otro módulo NATIVO que en Jest no existe: importarlo falla igual, con
+ * «NativeModule … is null». La librería no publica ningún sustituto, así que lo escribe la casa en
+ * `__mocks__/stripe-react-native.js`.
+ *
+ * El sustituto NO puede vivir dentro de esta factoría —como sí vive el de AsyncStorage— porque pinta
+ * componentes: la factoría se eleva por encima del módulo y no puede referenciar nada de fuera, ni
+ * siquiera las funciones que el preset de NativeWind inyecta al transformarlos.
+ */
+jest.mock('@stripe/stripe-react-native', () => require('./__mocks__/stripe-react-native'))
+
 const { router } = require('expo-router')
 
 /**

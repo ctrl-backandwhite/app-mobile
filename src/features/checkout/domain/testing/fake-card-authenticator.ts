@@ -6,8 +6,8 @@ import { CardAuthenticator } from '../ports/card-authenticator'
 /**
  * Autenticador de tarjeta de mentira.
  *
- * En producción todavía no hay ninguno —falta el SDK nativo de la pasarela—, así que este doble es
- * lo único que ejercita la rama del 3-D Secure completo del cobro con tarjeta guardada.
+ * El de verdad abre el reto del banco con el SDK nativo de la pasarela, que en las pruebas no
+ * existe; este doble ejercita la rama del 3-D Secure completo sin salir del dominio.
  */
 export class FakeCardAuthenticator implements CardAuthenticator {
   secrets: string[] = []

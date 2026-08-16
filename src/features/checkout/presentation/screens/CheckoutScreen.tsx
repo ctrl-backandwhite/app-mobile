@@ -48,6 +48,7 @@ export function CheckoutScreen(): ReactElement {
     quoteShipping,
     placeOrder,
     payWithSavedCard,
+    payWithProvider,
   } = useCheckoutDeps()
 
   const [lines, setLines] = useState<CartLine[]>([])
@@ -163,9 +164,8 @@ export function CheckoutScreen(): ReactElement {
   const missing = missingRequirements(draft)
   const blocked = blocksOrder(quote.data)
   const walletShort = payment?.kind === 'WALLET' && !walletEnough
-  const paypalPending = payment?.kind === 'PAYPAL'
   const confirmDisabled =
-    placing || items.length === 0 || missing.length > 0 || blocked || walletShort || paypalPending
+    placing || items.length === 0 || missing.length > 0 || blocked || walletShort
 
   const confirm = useCallback(async () => {
     if (submitting.current) return
@@ -201,6 +201,23 @@ export function CheckoutScreen(): ReactElement {
         }
       }
 
+      // PayPal: el pedido nace pendiente y el cobro se autoriza fuera de la app. Se abre su página,
+      // y al volver se confirma contra el backend — que el navegador diga «aprobado» solo significa
+      // que se pulsó el botón; quien sabe si el dinero llegó es el servidor.
+      if (draft.payment?.kind === 'PAYPAL') {
+        const paid = await payWithProvider.execute(placed.value.id, 'PAYPAL')
+        if (!paid.ok) {
+          setError(checkoutErrorMessage(paid.error))
+          return
+        }
+        if (paid.value === 'cancelled') {
+          // Cancelar no es un fallo: el pedido queda pendiente y se puede reintentar sin rehacer la
+          // cesta, así que tampoco se vacía.
+          setError(CHECKOUT_MESSAGES.paypalCancelled)
+          return
+        }
+      }
+
       await clearCart.execute()
       router.replace(`/orders/${placed.value.id}`)
     } finally {
@@ -212,6 +229,7 @@ export function CheckoutScreen(): ReactElement {
     draft,
     idempotencyKey,
     items,
+    payWithProvider,
     payWithSavedCard,
     placeOrder,
     quote.data?.subtotalUsdCents,
@@ -281,6 +299,7 @@ export function CheckoutScreen(): ReactElement {
           walletEnough={walletEnough}
           loading={methods.isLoading}
           onSelect={setChosenPayment}
+          onAddCard={(): void => router.push('/checkout/add-card')}
         />
 
         <TextField
@@ -300,8 +319,10 @@ export function CheckoutScreen(): ReactElement {
         {missing.includes('payment') ? (
           <Text className="text-[12px] text-warning">{CHECKOUT_MESSAGES.noPayment}</Text>
         ) : null}
-        {paypalPending ? (
-          <Text className="text-[12px] text-warning">{CHECKOUT_MESSAGES.paypalUnavailable}</Text>
+        {payment?.kind === 'PAYPAL' ? (
+          <Text className="text-[12px] text-base-content opacity-70">
+            {CHECKOUT_MESSAGES.paypalRedirect}
+          </Text>
         ) : null}
 
         <Button

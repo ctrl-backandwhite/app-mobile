@@ -18,6 +18,7 @@ import { ContainerProvider } from '@composition/container.provider'
 import { getAppConfig } from '@core/config/env'
 import { useBootstrapSession } from '@features/auth/presentation/hooks/use-bootstrap-session'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
+import { CardPaymentProvider } from '@features/checkout/presentation/components'
 import { useMergeGuestCart } from '@features/cart/presentation/hooks/use-merge-guest-cart'
 import { useLoadFavorites } from '@features/favorites/presentation/hooks/use-load-favorites'
 
@@ -66,7 +67,12 @@ export default function RootLayout(): ReactElement {
     <SafeAreaProvider>
       <ContainerProvider config={getAppConfig()}>
         <QueryClientProvider client={queryClient}>
-          <SessionGate fontsReady={fontsReady} />
+          {/* Va por dentro del proveedor de consultas: la clave pública de Stripe se pide al
+              backend, no se escribe en el código, así cambia sola entre entornos. Si aún no ha
+              llegado, la aplicación se pinta igual y solo el formulario de tarjeta espera. */}
+          <CardPaymentProvider>
+            <SessionGate fontsReady={fontsReady} />
+          </CardPaymentProvider>
           <StatusBar style="auto" />
         </QueryClientProvider>
       </ContainerProvider>

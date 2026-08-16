@@ -23,8 +23,8 @@ export class PayWithSavedCard {
   constructor(
     private readonly payments: PaymentMethodsRepository,
     /**
-     * Sin autenticador —la situación de hoy— el cobro que exige 3-D Secure se devuelve como
-     * pendiente en vez de fingir que se ha cobrado.
+     * Opcional a propósito: si algún día se monta este caso de uso sin autenticador, el cobro que
+     * exige 3-D Secure se devuelve como pendiente en vez de fingir que se ha cobrado.
      */
     private readonly authenticator?: CardAuthenticator,
   ) {}

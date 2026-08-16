@@ -21,18 +21,22 @@ const CONFIG: AppConfig = {
  *
  * `deps` se inyecta como contenedor completo porque las pantallas leen de él tanto los casos de uso
  * de la compra como los de la cesta.
+ *
+ * `client` deja pasar uno propio a la prueba que necesita observarlo —por ejemplo, para comprobar
+ * qué consultas invalida una pantalla al guardar.
  */
+export function makeQueryClient(): QueryClient {
+  return new QueryClient({ defaultOptions: { queries: { retry: false, gcTime: 0 } } })
+}
+
 export async function renderCheckout(
   ui: ReactElement,
   deps: Record<string, unknown> = {},
+  client: QueryClient = makeQueryClient(),
 ): Promise<RenderResult> {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: 0 } },
-  })
-
   return render(
     <ContainerProvider config={CONFIG} value={deps as unknown as Container}>
-      <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+      <QueryClientProvider client={client}>{ui}</QueryClientProvider>
     </ContainerProvider>,
   )
 }

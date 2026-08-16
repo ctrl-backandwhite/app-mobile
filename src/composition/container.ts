@@ -26,12 +26,17 @@ import { UpdateQuantity } from '@features/cart/domain/usecases/update-quantity'
 import { AsyncPreferenceStore } from '@core/storage/async-storage.adapter'
 import { ExpoPaymentApprovalGateway } from '@features/checkout/data/repositories/expo-payment-approval.gateway'
 import { HttpAddressRepository } from '@features/checkout/data/repositories/http-address.repository'
+import { HttpBillingRepository } from '@features/checkout/data/repositories/http-billing.repository'
 import { HttpCheckoutRepository } from '@features/checkout/data/repositories/http-checkout.repository'
 import { HttpPaymentIntentRepository } from '@features/checkout/data/repositories/http-payment-intent.repository'
 import { HttpPaymentMethodsRepository } from '@features/checkout/data/repositories/http-payment-methods.repository'
 import { HttpShippingRepository } from '@features/checkout/data/repositories/http-shipping.repository'
 import { HttpWalletRepository } from '@features/checkout/data/repositories/http-wallet.repository'
+import { StripeCardAuthenticator } from '@features/checkout/data/repositories/stripe-card-authenticator'
+import { StripeCardSetupGateway } from '@features/checkout/data/repositories/stripe-card-setup.gateway'
+import { AddCard } from '@features/checkout/domain/usecases/add-card'
 import { CreateAddress } from '@features/checkout/domain/usecases/create-address'
+import { GetBillingConfig } from '@features/checkout/domain/usecases/get-billing-config'
 import { GetWalletBalance } from '@features/checkout/domain/usecases/get-wallet-balance'
 import { ListAddresses } from '@features/checkout/domain/usecases/list-addresses'
 import { ListPaymentMethods } from '@features/checkout/domain/usecases/list-payment-methods'
@@ -120,6 +125,8 @@ export interface Container {
   readonly listPaymentMethods: ListPaymentMethods
   readonly payWithSavedCard: PayWithSavedCard
   readonly payWithProvider: PayWithProvider
+  readonly getBillingConfig: GetBillingConfig
+  readonly addCard: AddCard
 }
 
 /**
@@ -186,6 +193,7 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const quoteRepository = new HttpQuoteRepository(http)
   const ordersRepository: OrdersRepository = new HttpOrdersRepository(http)
   const paymentMethodsRepository = new HttpPaymentMethodsRepository(http)
+  const billingRepository = new HttpBillingRepository(http)
 
   return {
     http,
@@ -231,7 +239,11 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     placeOrder: new PlaceOrder(new HttpCheckoutRepository(http)),
     getWalletBalance: new GetWalletBalance(new HttpWalletRepository(http)),
     listPaymentMethods: new ListPaymentMethods(paymentMethodsRepository),
-    payWithSavedCard: new PayWithSavedCard(paymentMethodsRepository),
+    // Con autenticador: si el banco pide 3-D Secure, el SDK abre el reto y DESPUÉS se confirma el
+    // cobro contra el backend, que es quien decide si el dinero llegó.
+    payWithSavedCard: new PayWithSavedCard(paymentMethodsRepository, new StripeCardAuthenticator()),
+    getBillingConfig: new GetBillingConfig(billingRepository),
+    addCard: new AddCard(billingRepository, new StripeCardSetupGateway()),
     // PayPal y tarjeta nueva pasan por la pasarela: se abre su página en el navegador del sistema y
     // al volver se confirma contra el backend, que es quien decide si el dinero llegó.
     payWithProvider: new PayWithProvider(
