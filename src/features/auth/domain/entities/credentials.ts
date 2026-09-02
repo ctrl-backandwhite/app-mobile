@@ -2,7 +2,6 @@ export interface Credentials {
   readonly email: string
   readonly password: string
   readonly otp?: string
-  readonly linkSocial?: boolean
 }
 
 export interface RegisterInput {

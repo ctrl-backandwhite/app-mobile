@@ -58,7 +58,9 @@ export class HttpAuthRepository implements AuthRepository {
         this.http.post('/auth/login', {
           email: credentials.email,
           password: credentials.password,
-          linkSocial: credentials.linkSocial ?? false,
+          // El backend sigue exigiendo el campo en LoginDtoIn. Va siempre a false desde que se retiró
+          // el acceso social (26-ago-2026): ya no hay cuenta de red que vincular.
+          linkSocial: false,
           otp: credentials.otp,
         }),
       (raw) => {
@@ -68,12 +70,9 @@ export class HttpAuthRepository implements AuthRepository {
     )
   }
 
-  async currentUser(accessToken?: string): Promise<Result<User, AppError>> {
-    // La cabecera explícita gana al token de la sesión: es la vía para identificarse con uno recién
-    // emitido, sin tener que publicarlo antes como sesión activa.
-    const config = accessToken ? { headers: { Authorization: `Bearer ${accessToken}` } } : undefined
+  async currentUser(): Promise<Result<User, AppError>> {
     return this.call(
-      () => this.http.get('/me', config),
+      () => this.http.get('/me'),
       (raw) => toUser(userDto.parse(raw)),
     )
   }

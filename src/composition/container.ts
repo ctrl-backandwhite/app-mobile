@@ -62,20 +62,17 @@ import { ListCategories } from '@features/catalog/domain/usecases/list-categorie
 import { ListRelatedProducts } from '@features/catalog/domain/usecases/list-related-products'
 import { ListReviews } from '@features/catalog/domain/usecases/list-reviews'
 import { LoadHome } from '@features/catalog/domain/usecases/load-home'
-import { ExpoGoogleAuthGateway } from '@features/auth/data/repositories/expo-google-auth.gateway'
 import { HttpAuthRepository } from '@features/auth/data/repositories/http-auth.repository'
 import { SecureSessionStorage } from '@features/auth/data/repositories/secure-session.storage'
 import { AuthRepository } from '@features/auth/domain/ports/auth-repository'
 import { SessionStorage } from '@features/auth/domain/ports/session-storage'
 import { ActivateAccount } from '@features/auth/domain/usecases/activate-account'
-import { CompleteSocialLogin } from '@features/auth/domain/usecases/complete-social-login'
 import { ConfirmPasswordReset } from '@features/auth/domain/usecases/confirm-password-reset'
 import { Register } from '@features/auth/domain/usecases/register'
 import { RequestPasswordReset } from '@features/auth/domain/usecases/request-password-reset'
 import { ResendActivation } from '@features/auth/domain/usecases/resend-activation'
 import { RestoreSession } from '@features/auth/domain/usecases/restore-session'
 import { SignIn } from '@features/auth/domain/usecases/sign-in'
-import { SignInWithGoogle } from '@features/auth/domain/usecases/sign-in-with-google'
 import { SignOut } from '@features/auth/domain/usecases/sign-out'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 
@@ -84,8 +81,6 @@ export interface Container {
   readonly authRepository: AuthRepository
   readonly sessionStorage: SessionStorage
   readonly signIn: SignIn
-  readonly signInWithGoogle: SignInWithGoogle
-  readonly completeSocialLogin: CompleteSocialLogin
   readonly signOut: SignOut
   readonly restoreSession: RestoreSession
   readonly register: Register
@@ -181,7 +176,6 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const captcha: CaptchaSolver =
     overrides.captcha ?? new AltchaCaptchaSolver(() => http.get<Challenge>('/captcha/challenge'))
   const authRepository: AuthRepository = new HttpAuthRepository(http, captcha)
-  const google = new ExpoGoogleAuthGateway(config.apiBaseUrl, authRepository)
   const catalogRepository: CatalogRepository = new HttpCatalogRepository(http)
   const favoritesRepository: FavoritesRepository = new HttpFavoritesRepository(http)
   // La cesta va al servidor cuando hay sesión y al dispositivo cuando no. Se decide en cada
@@ -202,8 +196,6 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     authRepository,
     sessionStorage,
     signIn: new SignIn(authRepository, sessionStorage),
-    signInWithGoogle: new SignInWithGoogle(google, sessionStorage),
-    completeSocialLogin: new CompleteSocialLogin(authRepository, sessionStorage),
     signOut: new SignOut(authRepository, sessionStorage),
     restoreSession: new RestoreSession(authRepository, sessionStorage),
     register: new Register(authRepository),

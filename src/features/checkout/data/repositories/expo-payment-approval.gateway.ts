@@ -14,7 +14,7 @@ const CALLBACK_URL = 'nx036://auth/callback'
 /**
  * Aprobación de un pago en la web del proveedor.
  *
- * Se abre en la vista de navegador del sistema, igual que el acceso con Google: una vista incrustada
+ * Se abre en la vista de navegador del sistema: una vista incrustada
  * podría leer las credenciales que se teclean, y los proveedores de pago las rechazan por eso.
  *
  * PENDIENTE DE ESTRENO: hoy la tramitación no devuelve ningún enlace de aprobación, así que nadie
