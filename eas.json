@@ -8,7 +8,8 @@
       "distribution": "internal",
       "environment": "development",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://back-dropshipping-des.up.railway.app"
+        "EXPO_PUBLIC_API_BASE_URL": "https://back-dropshipping-des.up.railway.app",
+        "EXPO_PUBLIC_WEB_BASE_URL": "https://dev.nx036.com"
       },
       "android": {
         "image": "latest",
@@ -22,7 +23,8 @@
       "distribution": "internal",
       "environment": "preview",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://mic-dropshipping-pre.up.railway.app"
+        "EXPO_PUBLIC_API_BASE_URL": "https://mic-dropshipping-pre.up.railway.app",
+        "EXPO_PUBLIC_WEB_BASE_URL": "https://pre.nx036.com"
       },
       "android": {
         "buildType": "apk",
@@ -36,7 +38,8 @@
       "autoIncrement": true,
       "environment": "production",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "https://back-dropshipping-pro.up.railway.app"
+        "EXPO_PUBLIC_API_BASE_URL": "https://back-dropshipping-pro.up.railway.app",
+        "EXPO_PUBLIC_WEB_BASE_URL": "https://nx036.com"
       },
       "android": {
         "image": "latest"
@@ -50,7 +53,8 @@
       "distribution": "internal",
       "environment": "development",
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "http://10.0.2.2:18082"
+        "EXPO_PUBLIC_API_BASE_URL": "http://10.0.2.2:18082",
+        "EXPO_PUBLIC_WEB_BASE_URL": "http://10.0.2.2:3003"
       },
       "android": {
         "image": "latest",

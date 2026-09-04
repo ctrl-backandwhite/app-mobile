@@ -13,6 +13,7 @@ import { CartScreen } from '../screens/CartScreen'
 
 const CONFIG: AppConfig = {
   apiBaseUrl: 'https://api.test',
+  webBaseUrl: 'https://nx036.test',
   defaultCurrency: 'EUR',
   defaultLocale: 'es',
 }

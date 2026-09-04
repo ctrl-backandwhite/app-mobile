@@ -1,5 +1,6 @@
 export interface AppConfig {
   readonly apiBaseUrl: string
+  readonly webBaseUrl: string
   readonly defaultCurrency: string
   readonly defaultLocale: string
 }
@@ -13,6 +14,16 @@ export function readConfig(source: Record<string, string | undefined>): AppConfi
   if (!raw) throw new Error('Falta la variable EXPO_PUBLIC_API_BASE_URL')
   return {
     apiBaseUrl: raw.replace(/\/+$/, ''),
+    /*
+     * La web NO es el backend. Los documentos legales viven en el escaparate, y darlos por servidos
+     * desde `apiBaseUrl` los mandaba al host de la API, donde no existen: enlaces a un 404 justo en la
+     * pantalla donde el usuario declara haberlos leído.
+     *
+     * El valor por defecto es el sitio de producción a propósito. Los textos legales son públicos y los
+     * mismos en los tres entornos, así que si la variable falta es mejor abrir el documento bueno que
+     * no abrir ninguno.
+     */
+    webBaseUrl: (source.EXPO_PUBLIC_WEB_BASE_URL ?? 'https://nx036.com').replace(/\/+$/, ''),
     defaultCurrency: source.EXPO_PUBLIC_DEFAULT_CURRENCY ?? 'USD',
     defaultLocale: source.EXPO_PUBLIC_DEFAULT_LOCALE ?? 'es',
   }
@@ -41,6 +52,7 @@ export function getAppConfig(): AppConfig {
      */
     cached = readConfig({
       EXPO_PUBLIC_API_BASE_URL: process.env.EXPO_PUBLIC_API_BASE_URL,
+      EXPO_PUBLIC_WEB_BASE_URL: process.env.EXPO_PUBLIC_WEB_BASE_URL,
       EXPO_PUBLIC_DEFAULT_CURRENCY: process.env.EXPO_PUBLIC_DEFAULT_CURRENCY,
       EXPO_PUBLIC_DEFAULT_LOCALE: process.env.EXPO_PUBLIC_DEFAULT_LOCALE,
     })

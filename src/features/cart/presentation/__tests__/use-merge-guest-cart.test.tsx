@@ -14,6 +14,7 @@ import { useMergeGuestCart } from '../hooks/use-merge-guest-cart'
 
 const CONFIG: AppConfig = {
   apiBaseUrl: 'https://api.test',
+  webBaseUrl: 'https://nx036.test',
   defaultCurrency: 'EUR',
   defaultLocale: 'es',
 }

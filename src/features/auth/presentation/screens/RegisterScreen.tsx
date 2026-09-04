@@ -1,10 +1,13 @@
 import { router } from 'expo-router'
 import { ReactElement, useState } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Linking, Pressable, Text, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
 import { checkPassword } from '@features/auth/domain/policies/password-policy'
 import { Alert, BrandHeader, Button, Card, PasswordField, Screen, TextField } from '@ds/components'
+
+import { getAppConfig } from '@core/config/env'
+import { LEGAL_LINKS, LEGAL_VERSION } from '@shared/legal/legal'
 
 import { PasswordRequirements } from '../components/PasswordRequirements'
 
@@ -31,6 +34,33 @@ function detectRegion(): Region {
 }
 
 const DETECTED = detectRegion()
+
+interface EnlaceLegalProps {
+  etiqueta: string
+  ruta: string
+}
+
+/**
+ * Abre un documento legal en el navegador del sistema.
+ *
+ * No se duplican los textos dentro de la aplicación a propósito: existirían dos versiones del mismo
+ * documento y la de la app se quedaría atrás en la siguiente revisión, que es justo lo que no puede
+ * pasar con aquello que el usuario declara haber aceptado.
+ */
+function EnlaceLegal({ etiqueta, ruta }: EnlaceLegalProps): ReactElement {
+  return (
+    <Pressable
+      accessibilityRole="link"
+      onPress={() => {
+        // Si el navegador no puede abrirse no hay nada que hacer aquí, pero tumbar el registro por
+        // ello sería peor: la casilla sigue siendo válida y la cuenta se puede crear igual.
+        void Linking.openURL(`${getAppConfig().webBaseUrl}${ruta}`).catch(() => undefined)
+      }}
+    >
+      <Text className="text-[13px] text-primary underline">{etiqueta}</Text>
+    </Pressable>
+  )
+}
 
 interface CheckboxProps {
   label: string
@@ -95,6 +125,8 @@ export function RegisterScreen(): ReactElement {
         country: country.trim() || undefined,
         language: language.trim() || undefined,
         acceptedTerms,
+        // La versión que el usuario tuvo delante. El backend la exige y la rechaza vacía.
+        acceptedTermsVersion: LEGAL_VERSION,
         marketingOptIn,
       })
       if (!result.ok) {
@@ -176,10 +208,19 @@ export function RegisterScreen(): ReactElement {
 
             <View className="gap-3">
               <Checkbox
-                label="Acepto los términos y condiciones"
+                label="Acepto los términos y condiciones y la política de privacidad"
                 checked={acceptedTerms}
                 onToggle={() => setAcceptedTerms((previous: boolean): boolean => !previous)}
               />
+              {/*
+                Los documentos tienen que poder leerse ANTES de marcar la casilla. Aceptar algo que no
+                se puede consultar no es consentimiento informado, y la casilla sola no lo era: hasta
+                aquí la pantalla no ofrecía forma de abrir ninguno de los dos textos.
+              */}
+              <View className="-mt-1 flex-row flex-wrap items-center gap-x-3 pl-8">
+                <EnlaceLegal etiqueta="Leer los términos" ruta={LEGAL_LINKS.terminos} />
+                <EnlaceLegal etiqueta="Leer la privacidad" ruta={LEGAL_LINKS.privacidad} />
+              </View>
               <Checkbox
                 label="Quiero recibir novedades y ofertas por correo"
                 checked={marketingOptIn}

@@ -13,6 +13,7 @@ import { useSessionStore } from '../state/session.store'
 
 const CONFIG: AppConfig = {
   apiBaseUrl: 'https://api.test',
+  webBaseUrl: 'https://nx036.test',
   defaultCurrency: 'USD',
   defaultLocale: 'es',
 }

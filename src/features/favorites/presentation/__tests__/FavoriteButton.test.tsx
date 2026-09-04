@@ -11,6 +11,7 @@ import { useFavoritesStore } from '../state/favorites.store'
 
 const CONFIG: AppConfig = {
   apiBaseUrl: 'https://api.test',
+  webBaseUrl: 'https://nx036.test',
   defaultCurrency: 'USD',
   defaultLocale: 'es',
 }

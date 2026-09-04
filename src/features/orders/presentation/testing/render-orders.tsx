@@ -10,6 +10,7 @@ import { OrdersUseCases } from '../hooks/use-orders-use-cases'
 
 const CONFIG: AppConfig = {
   apiBaseUrl: 'https://api.test',
+  webBaseUrl: 'https://nx036.test',
   defaultCurrency: 'EUR',
   defaultLocale: 'es',
 }

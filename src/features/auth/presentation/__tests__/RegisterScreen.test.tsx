@@ -5,9 +5,10 @@ import { err, ok } from '@core/result/result'
 
 import { RegisterScreen } from '../screens/RegisterScreen'
 import { renderWithContainer } from '../testing/render-with-container'
+import { LEGAL_VERSION } from '@shared/legal/legal'
 
 const STRONG = 'Secreta1!'
-const TERMS = 'Acepto los términos y condiciones'
+const TERMS = 'Acepto los términos y condiciones y la política de privacidad'
 const MARKETING = 'Quiero recibir novedades y ofertas por correo'
 
 function registerThatReturns(...results: unknown[]) {
@@ -87,6 +88,9 @@ describe('RegisterScreen', () => {
         country: expect.anything(),
         language: expect.anything(),
         acceptedTerms: true,
+        // El backend la exige y la rechaza vacía. Esta aserción existía ya y pasaba SIN este campo:
+        // fijaba como correcto un alta que el servidor llevaba tres semanas devolviendo con un 400.
+        acceptedTermsVersion: LEGAL_VERSION,
         marketingOptIn: true,
       }),
     )
