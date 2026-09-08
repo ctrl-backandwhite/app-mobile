@@ -49,6 +49,14 @@ import { HttpCheckoutRepository } from '@features/checkout/data/repositories/htt
 import { HttpPaymentIntentRepository } from '@features/checkout/data/repositories/http-payment-intent.repository'
 import { HttpPaymentMethodsRepository } from '@features/checkout/data/repositories/http-payment-methods.repository'
 import { HttpShippingRepository } from '@features/checkout/data/repositories/http-shipping.repository'
+import { HttpNotificationsRepository } from '@features/notifications/data/repositories/http-notifications.repository'
+import { NotificationsRepository } from '@features/notifications/domain/ports/notifications-repository'
+import {
+  ArchiveNotification,
+  ListNotifications,
+  MarkAllNotificationsRead,
+  MarkNotificationRead,
+} from '@features/notifications/domain/usecases/notifications'
 import { HttpWalletRepository } from '@features/checkout/data/repositories/http-wallet.repository'
 import { WalletRepository } from '@features/checkout/domain/ports/wallet-repository'
 import { StripeCardAuthenticator } from '@features/checkout/data/repositories/stripe-card-authenticator'
@@ -153,6 +161,10 @@ export interface Container {
   readonly confirmAccountDeletion: ConfirmAccountDeletion
   readonly getSubscription: GetSubscription
   readonly cancelSubscription: CancelSubscription
+  readonly listNotifications: ListNotifications
+  readonly markNotificationRead: MarkNotificationRead
+  readonly markAllNotificationsRead: MarkAllNotificationsRead
+  readonly archiveNotification: ArchiveNotification
   readonly listPaymentMethods: ListPaymentMethods
   readonly payWithSavedCard: PayWithSavedCard
   readonly payWithProvider: PayWithProvider
@@ -215,6 +227,7 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const regionRepository: RegionRepository = new HttpRegionRepository(http)
   const accountRepository: AccountRepository = new HttpAccountRepository(http)
   const subscriptionRepository: SubscriptionRepository = new HttpSubscriptionRepository(http)
+  const notificationsRepository: NotificationsRepository = new HttpNotificationsRepository(http)
   const preferenceStore = new AsyncPreferenceStore()
   // La cesta va al servidor cuando hay sesión y al dispositivo cuando no. Se decide en cada
   // operación, no al construir el contenedor: la sesión cambia con la aplicación abierta.
@@ -287,6 +300,10 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     confirmAccountDeletion: new ConfirmAccountDeletion(accountRepository),
     getSubscription: new GetSubscription(subscriptionRepository),
     cancelSubscription: new CancelSubscription(subscriptionRepository),
+    listNotifications: new ListNotifications(notificationsRepository),
+    markNotificationRead: new MarkNotificationRead(notificationsRepository),
+    markAllNotificationsRead: new MarkAllNotificationsRead(notificationsRepository),
+    archiveNotification: new ArchiveNotification(notificationsRepository),
     listPaymentMethods: new ListPaymentMethods(paymentMethodsRepository),
     // Con autenticador: si el banco pide 3-D Secure, el SDK abre el reto y DESPUÉS se confirma el
     // cobro contra el backend, que es quien decide si el dinero llegó.

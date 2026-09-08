@@ -68,6 +68,13 @@ export function AccountScreen(): ReactElement {
 
         <Card>
           <Acceso
+            testID="ir-a-avisos"
+            icono="🔔"
+            titulo="Avisos"
+            detalle="Pedidos, facturación y mensajes"
+            onPress={() => router.push('/notifications')}
+          />
+          <Acceso
             testID="ir-a-pedidos"
             icono="🧾"
             titulo="Mis pedidos"

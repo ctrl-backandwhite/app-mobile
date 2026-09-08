@@ -47,6 +47,9 @@ describe('AccountScreen', () => {
   it('lleva a pedidos, a guardados, al monedero y a los ajustes de región', async () => {
     await renderCatalog(<AccountScreen />, { signOut: { execute: jest.fn() } as never })
 
+    await pulsa('ir-a-avisos')
+    expect(router.push).toHaveBeenCalledWith('/notifications')
+
     await pulsa('ir-a-pedidos')
     expect(router.push).toHaveBeenCalledWith('/orders')
 

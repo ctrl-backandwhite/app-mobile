@@ -21,6 +21,7 @@ export default function AppLayout(): ReactElement {
         que aquí es lo que dice dónde se ha entrado.
       */}
       <Stack.Screen name="wallet" options={{ headerShown: true, title: 'Monedero' }} />
+      <Stack.Screen name="notifications" options={{ headerShown: true, title: 'Avisos' }} />
       <Stack.Screen
         name="settings/region"
         options={{ headerShown: true, title: 'Idioma y divisa' }}
