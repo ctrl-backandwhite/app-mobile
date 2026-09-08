@@ -2,11 +2,10 @@ import { router } from 'expo-router'
 import { ReactElement, useState } from 'react'
 import { Linking, Pressable, Text, View } from 'react-native'
 
-import { useContainer } from '@composition/container.provider'
+import { useAppConfig, useContainer } from '@composition/container.provider'
 import { checkPassword } from '@features/auth/domain/policies/password-policy'
 import { Alert, BrandHeader, Button, Card, PasswordField, Screen, TextField } from '@ds/components'
 
-import { getAppConfig } from '@core/config/env'
 import { LEGAL_LINKS, LEGAL_VERSION } from '@shared/legal/legal'
 
 import { PasswordRequirements } from '../components/PasswordRequirements'
@@ -48,13 +47,15 @@ interface EnlaceLegalProps {
  * pasar con aquello que el usuario declara haber aceptado.
  */
 function EnlaceLegal({ etiqueta, ruta }: EnlaceLegalProps): ReactElement {
+  const config = useAppConfig()
+
   return (
     <Pressable
       accessibilityRole="link"
       onPress={() => {
         // Si el navegador no puede abrirse no hay nada que hacer aquí, pero tumbar el registro por
         // ello sería peor: la casilla sigue siendo válida y la cuenta se puede crear igual.
-        void Linking.openURL(`${getAppConfig().webBaseUrl}${ruta}`).catch(() => undefined)
+        void Linking.openURL(`${config.webBaseUrl}${ruta}`).catch(() => undefined)
       }}
     >
       <Text className="text-[13px] text-primary underline">{etiqueta}</Text>

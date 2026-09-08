@@ -1,4 +1,5 @@
 import { AppError } from '@core/errors/app-error'
+import { call } from '@core/http/call'
 import { HttpClient } from '@core/http/http-client'
 import { Result } from '@core/result/result'
 import { BillingConfig } from '@features/checkout/domain/entities/billing-config'
@@ -6,8 +7,6 @@ import { BillingRepository } from '@features/checkout/domain/ports/billing-repos
 
 import { billingConfigDto, setupIntentDto } from '../dto/checkout.dto'
 import { toBillingConfig } from '../mappers/billing.mapper'
-
-import { call } from './http-call'
 
 const CONTRACT = 'La respuesta de la configuración de pago no tiene el formato esperado.'
 

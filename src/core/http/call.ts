@@ -10,9 +10,9 @@ function isSchemaViolation(error: unknown): boolean {
 /**
  * Envuelve una llamada al backend: traduce cualquier fallo a `AppError` y valida el contrato.
  *
- * Vive en un módulo compartido porque la compra habla con cinco endpoints distintos y repetir el
- * try/catch en cada uno acabaría con cinco tratamientos del error ligeramente distintos —que es
- * exactamente el sitio donde se cuelan los fallos que nadie ve hasta que alguien paga.
+ * Vive en `core` porque no tiene nada de ninguna feature: repetir el try/catch en cada repositorio
+ * acabaría con tantos tratamientos del error ligeramente distintos como repositorios haya —que es
+ * exactamente el sitio donde se cuelan los fallos que nadie ve hasta que alguien paga—.
  */
 export async function call<T>(
   operation: () => Promise<unknown>,

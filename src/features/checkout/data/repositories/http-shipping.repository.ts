@@ -1,4 +1,5 @@
 import { AppError } from '@core/errors/app-error'
+import { call } from '@core/http/call'
 import { HttpClient } from '@core/http/http-client'
 import { Result } from '@core/result/result'
 import { Region, ShippingQuote } from '@features/checkout/domain/entities/shipping'
@@ -6,8 +7,6 @@ import { ShippingQuoteQuery, ShippingRepository } from '@features/checkout/domai
 
 import { regionListDto, shippingQuoteDto } from '../dto/checkout.dto'
 import { toShippingQuote } from '../mappers/shipping.mapper'
-
-import { call } from './http-call'
 
 const CONTRACT = 'La cotización de envío del servidor no tiene el formato esperado.'
 

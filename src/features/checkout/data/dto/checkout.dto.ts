@@ -79,6 +79,35 @@ export const walletDto = z.object({
   balanceFormatted: z.string().nullable().optional(),
   displayCurrency: z.string().default(''),
   status: z.string().default(''),
+  // Lo retenido por operaciones en curso. Solo se enseña si de verdad hay algo retenido: un
+  // «Retenido: 0,00 $» inquieta sin motivo, y hay monederos con una retención huérfana de los
+  // primeros días de la plataforma.
+  holdUsdCents: z.number().nullable().optional(),
+  holdUsdFormatted: z.string().nullable().optional(),
+})
+
+/**
+ * Un apunte. `kind` se valida como texto libre y lo normaliza el dominio: con un `enum` estricto,
+ * una clase nueva en el servidor tumbaría el histórico entero y dejaría sin ver los apuntes que la
+ * app sí sabe pintar.
+ */
+export const walletTransactionDto = z.object({
+  id: z.string(),
+  kind: z.string().default(''),
+  amountUsdCents: z.number().default(0),
+  balanceAfterCents: z.number().default(0),
+  description: z.string().nullable().optional(),
+  createdAt: z.string().default(''),
+  amountFormatted: z.string().nullable().optional(),
+  balanceAfterFormatted: z.string().nullable().optional(),
+})
+
+export const walletTransactionPageDto = z.object({
+  items: z.array(walletTransactionDto).default([]),
+  page: z.number().default(0),
+  size: z.number().default(0),
+  totalElements: z.number().default(0),
+  totalPages: z.number().default(0),
 })
 
 /**
@@ -126,6 +155,8 @@ export type AddressDto = z.infer<typeof addressDto>
 export type ShippingQuoteDto = z.infer<typeof shippingQuoteDto>
 export type PlacedOrderDto = z.infer<typeof placedOrderDto>
 export type WalletDto = z.infer<typeof walletDto>
+export type WalletTransactionDto = z.infer<typeof walletTransactionDto>
+export type WalletTransactionPageDto = z.infer<typeof walletTransactionPageDto>
 export type PaymentMethodDto = z.infer<typeof paymentMethodDto>
 export type SavedCardChargeDto = z.infer<typeof savedCardChargeDto>
 export type BillingConfigDto = z.infer<typeof billingConfigDto>

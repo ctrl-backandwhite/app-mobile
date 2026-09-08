@@ -82,6 +82,20 @@ export function AccountScreen(): ReactElement {
             onPress={() => router.push('/favorites')}
           />
           <Acceso
+            testID="ir-a-monedero"
+            icono="💳"
+            titulo="Monedero"
+            detalle="Saldo y movimientos"
+            onPress={() => router.push('/wallet')}
+          />
+          <Acceso
+            testID="ir-a-plan"
+            icono="⭐"
+            titulo="Mi plan"
+            detalle="Suscripción y facturación"
+            onPress={() => router.push('/settings/subscription')}
+          />
+          <Acceso
             testID="ir-a-region"
             icono="🌍"
             titulo="Idioma y divisa"
@@ -89,6 +103,13 @@ export function AccountScreen(): ReactElement {
             // antes de comprar, y tenerlo que abrir para saberlo sería esconderlo.
             detalle={`${locale.toUpperCase()} · ${currency}`}
             onPress={() => router.push('/settings/region')}
+          />
+          <Acceso
+            testID="ir-a-seguridad"
+            icono="🔒"
+            titulo="Seguridad"
+            detalle="Contraseña, sesiones y borrado de cuenta"
+            onPress={() => router.push('/settings/security')}
             ultimo
           />
         </Card>

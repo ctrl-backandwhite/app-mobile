@@ -1,4 +1,5 @@
 import { AppError } from '@core/errors/app-error'
+import { call } from '@core/http/call'
 import { HttpClient } from '@core/http/http-client'
 import { Result } from '@core/result/result'
 import { PaymentMethod } from '@features/checkout/domain/entities/payment-method'
@@ -9,8 +10,6 @@ import {
 
 import { paymentMethodListDto, savedCardChargeDto } from '../dto/checkout.dto'
 import { toPaymentMethods, toSavedCardCharge } from '../mappers/payment-method.mapper'
-
-import { call } from './http-call'
 
 const CONTRACT = 'La respuesta de los métodos de pago no tiene el formato esperado.'
 

@@ -11,6 +11,12 @@ interface Props {
   loading?: boolean
   disabled?: boolean
   variant?: ButtonVariant
+  /**
+   * Para poder señalar UN botón concreto. Sin él solo queda buscarlo por su rótulo, y eso obliga a
+   * que dos botones de la misma pantalla nunca coincidan en el texto: una restricción del diseño
+   * impuesta por las pruebas, que es justo al revés de como debe ser.
+   */
+  testID?: string
 }
 
 const BASE = 'h-12 flex-row items-center justify-center gap-2 rounded-field px-4'
@@ -35,6 +41,7 @@ export function Button({
   loading = false,
   disabled = false,
   variant = 'primary',
+  testID,
 }: Props): ReactElement {
   // Cargando también bloquea: un doble envío del formulario duplicaría la petición de red.
   const inert = loading || disabled
@@ -42,6 +49,7 @@ export function Button({
 
   return (
     <Pressable
+      testID={testID}
       accessibilityRole="button"
       accessibilityState={{ disabled: inert, busy: loading }}
       disabled={inert}

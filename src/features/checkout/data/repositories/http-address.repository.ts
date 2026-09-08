@@ -1,4 +1,5 @@
 import { AppError } from '@core/errors/app-error'
+import { call } from '@core/http/call'
 import { HttpClient } from '@core/http/http-client'
 import { Result } from '@core/result/result'
 import { Address, NewAddress } from '@features/checkout/domain/entities/address'
@@ -6,8 +7,6 @@ import { AddressRepository } from '@features/checkout/domain/ports/address-repos
 
 import { addressDto, addressListDto } from '../dto/checkout.dto'
 import { toAddress, toAddressPayload } from '../mappers/address.mapper'
-
-import { call } from './http-call'
 
 const CONTRACT = 'La libreta de direcciones del servidor no tiene el formato esperado.'
 

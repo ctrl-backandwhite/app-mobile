@@ -1,4 +1,5 @@
 import { AppError } from '@core/errors/app-error'
+import { call } from '@core/http/call'
 import { HttpClient } from '@core/http/http-client'
 import { Result } from '@core/result/result'
 import { PlacedOrder } from '@features/checkout/domain/entities/placed-order'
@@ -6,8 +7,6 @@ import { CheckoutOrder, CheckoutRepository } from '@features/checkout/domain/por
 
 import { placedOrderDto } from '../dto/checkout.dto'
 import { toPlacedOrder } from '../mappers/placed-order.mapper'
-
-import { call } from './http-call'
 
 export class HttpCheckoutRepository implements CheckoutRepository {
   constructor(private readonly http: HttpClient) {}

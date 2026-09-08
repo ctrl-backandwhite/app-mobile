@@ -43,8 +43,8 @@ describe('AccountScreen', () => {
     expect(screen.getByText('ana@nx036.com')).toBeTruthy()
   })
 
-  /** Los tres accesos que dan sentido a la pestaña: a dónde se vuelve en una tienda. */
-  it('lleva a pedidos, a guardados y a los ajustes de región', async () => {
+  /** Los accesos que dan sentido a la pestaña: a dónde se vuelve en una tienda. */
+  it('lleva a pedidos, a guardados, al monedero y a los ajustes de región', async () => {
     await renderCatalog(<AccountScreen />, { signOut: { execute: jest.fn() } as never })
 
     await pulsa('ir-a-pedidos')
@@ -53,8 +53,17 @@ describe('AccountScreen', () => {
     await pulsa('ir-a-guardados')
     expect(router.push).toHaveBeenCalledWith('/favorites')
 
+    await pulsa('ir-a-monedero')
+    expect(router.push).toHaveBeenCalledWith('/wallet')
+
+    await pulsa('ir-a-plan')
+    expect(router.push).toHaveBeenCalledWith('/settings/subscription')
+
     await pulsa('ir-a-region')
     expect(router.push).toHaveBeenCalledWith('/settings/region')
+
+    await pulsa('ir-a-seguridad')
+    expect(router.push).toHaveBeenCalledWith('/settings/security')
   })
 
   /**

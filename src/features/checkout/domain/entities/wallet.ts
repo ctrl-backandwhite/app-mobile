@@ -10,6 +10,11 @@ export interface WalletBalance {
   readonly balanceFormatted?: string
   readonly currency: string
   readonly status: string
+  /**
+   * Lo retenido por operaciones en curso, ya formateado. Ausente cuando no hay nada retenido: la
+   * línea entonces no se pinta, para no inquietar con un «Retenido: 0,00 $».
+   */
+  readonly holdFormatted?: string
 }
 
 /**

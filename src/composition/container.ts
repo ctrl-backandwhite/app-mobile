@@ -26,7 +26,21 @@ import { UpdateQuantity } from '@features/cart/domain/usecases/update-quantity'
 import { AsyncPreferenceStore } from '@core/storage/async-storage.adapter'
 import { HttpRegionRepository } from '@features/account/data/repositories/http-region.repository'
 import { RegionRepository } from '@features/account/domain/ports/region-repository'
+import { HttpAccountRepository } from '@features/account/data/repositories/http-account.repository'
+import { AccountRepository } from '@features/account/domain/ports/account-repository'
+import { ChangePassword } from '@features/account/domain/usecases/change-password'
+import {
+  ConfirmAccountDeletion,
+  RequestAccountDeletion,
+} from '@features/account/domain/usecases/delete-account'
 import { ListCurrencies, ListLanguages } from '@features/account/domain/usecases/list-region-options'
+import { ListSessions, RevokeSession } from '@features/account/domain/usecases/sessions'
+import { HttpSubscriptionRepository } from '@features/account/data/repositories/http-subscription.repository'
+import { SubscriptionRepository } from '@features/account/domain/ports/subscription-repository'
+import {
+  CancelSubscription,
+  GetSubscription,
+} from '@features/account/domain/usecases/subscription'
 import { LoadPreferences, SavePreferences } from '@features/account/domain/usecases/preferences'
 import { ExpoPaymentApprovalGateway } from '@features/checkout/data/repositories/expo-payment-approval.gateway'
 import { HttpAddressRepository } from '@features/checkout/data/repositories/http-address.repository'
@@ -36,12 +50,14 @@ import { HttpPaymentIntentRepository } from '@features/checkout/data/repositorie
 import { HttpPaymentMethodsRepository } from '@features/checkout/data/repositories/http-payment-methods.repository'
 import { HttpShippingRepository } from '@features/checkout/data/repositories/http-shipping.repository'
 import { HttpWalletRepository } from '@features/checkout/data/repositories/http-wallet.repository'
+import { WalletRepository } from '@features/checkout/domain/ports/wallet-repository'
 import { StripeCardAuthenticator } from '@features/checkout/data/repositories/stripe-card-authenticator'
 import { StripeCardSetupGateway } from '@features/checkout/data/repositories/stripe-card-setup.gateway'
 import { AddCard } from '@features/checkout/domain/usecases/add-card'
 import { CreateAddress } from '@features/checkout/domain/usecases/create-address'
 import { GetBillingConfig } from '@features/checkout/domain/usecases/get-billing-config'
 import { GetWalletBalance } from '@features/checkout/domain/usecases/get-wallet-balance'
+import { ListWalletTransactions } from '@features/checkout/domain/usecases/list-wallet-transactions'
 import { ListAddresses } from '@features/checkout/domain/usecases/list-addresses'
 import { ListPaymentMethods } from '@features/checkout/domain/usecases/list-payment-methods'
 import { ListRegions } from '@features/checkout/domain/usecases/list-regions'
@@ -129,6 +145,14 @@ export interface Container {
   readonly quoteShipping: QuoteShipping
   readonly placeOrder: PlaceOrder
   readonly getWalletBalance: GetWalletBalance
+  readonly listWalletTransactions: ListWalletTransactions
+  readonly changePassword: ChangePassword
+  readonly listSessions: ListSessions
+  readonly revokeSession: RevokeSession
+  readonly requestAccountDeletion: RequestAccountDeletion
+  readonly confirmAccountDeletion: ConfirmAccountDeletion
+  readonly getSubscription: GetSubscription
+  readonly cancelSubscription: CancelSubscription
   readonly listPaymentMethods: ListPaymentMethods
   readonly payWithSavedCard: PayWithSavedCard
   readonly payWithProvider: PayWithProvider
@@ -189,6 +213,8 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const catalogRepository: CatalogRepository = new HttpCatalogRepository(http)
   const favoritesRepository: FavoritesRepository = new HttpFavoritesRepository(http)
   const regionRepository: RegionRepository = new HttpRegionRepository(http)
+  const accountRepository: AccountRepository = new HttpAccountRepository(http)
+  const subscriptionRepository: SubscriptionRepository = new HttpSubscriptionRepository(http)
   const preferenceStore = new AsyncPreferenceStore()
   // La cesta va al servidor cuando hay sesión y al dispositivo cuando no. Se decide en cada
   // operación, no al construir el contenedor: la sesión cambia con la aplicación abierta.
@@ -202,6 +228,9 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const ordersRepository: OrdersRepository = new HttpOrdersRepository(http)
   const paymentMethodsRepository = new HttpPaymentMethodsRepository(http)
   const billingRepository = new HttpBillingRepository(http)
+  // Uno solo para los dos casos de uso: el saldo y el histórico salen del mismo monedero, y dos
+  // instancias sobre el mismo cliente HTTP solo serían dos sitios donde tocar cuando cambie.
+  const walletRepository: WalletRepository = new HttpWalletRepository(http)
 
   return {
     http,
@@ -249,7 +278,15 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     listRegions: new ListRegions(new HttpShippingRepository(http)),
     quoteShipping: new QuoteShipping(new HttpShippingRepository(http)),
     placeOrder: new PlaceOrder(new HttpCheckoutRepository(http)),
-    getWalletBalance: new GetWalletBalance(new HttpWalletRepository(http)),
+    getWalletBalance: new GetWalletBalance(walletRepository),
+    listWalletTransactions: new ListWalletTransactions(walletRepository),
+    changePassword: new ChangePassword(accountRepository),
+    listSessions: new ListSessions(accountRepository),
+    revokeSession: new RevokeSession(accountRepository),
+    requestAccountDeletion: new RequestAccountDeletion(accountRepository),
+    confirmAccountDeletion: new ConfirmAccountDeletion(accountRepository),
+    getSubscription: new GetSubscription(subscriptionRepository),
+    cancelSubscription: new CancelSubscription(subscriptionRepository),
     listPaymentMethods: new ListPaymentMethods(paymentMethodsRepository),
     // Con autenticador: si el banco pide 3-D Secure, el SDK abre el reto y DESPUÉS se confirma el
     // cobro contra el backend, que es quien decide si el dinero llegó.
