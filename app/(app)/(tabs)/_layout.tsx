@@ -43,6 +43,18 @@ export default function TabsLayout(): ReactElement {
           tabBarIcon: ({ color, size }) => <Ionicons name="grid-outline" color={color} size={size} />,
         }}
       />
+      {/*
+        Guardados entre el catálogo y la cesta, que es donde se espera en una tienda: el recorrido va de
+        mirar a querer a comprar. Cinco pestañas es el máximo que admite una barra inferior sin que los
+        rótulos se corten.
+      */}
+      <Tabs.Screen
+        name="favorites"
+        options={{
+          title: 'Guardados',
+          tabBarIcon: ({ color, size }) => <Ionicons name="heart-outline" color={color} size={size} />,
+        }}
+      />
       <Tabs.Screen
         name="cart"
         options={{

@@ -54,6 +54,7 @@ import { ListOrders } from '@features/orders/domain/usecases/list-orders'
 import { HttpFavoritesRepository } from '@features/favorites/data/repositories/http-favorites.repository'
 import { FavoritesRepository } from '@features/favorites/domain/ports/favorites-repository'
 import { ListFavoriteIds } from '@features/favorites/domain/usecases/list-favorite-ids'
+import { ListFavorites } from '@features/favorites/domain/usecases/list-favorites'
 import { ToggleFavorite } from '@features/favorites/domain/usecases/toggle-favorite'
 import { CatalogRepository } from '@features/catalog/domain/ports/catalog-repository'
 import { BrowseProducts } from '@features/catalog/domain/usecases/browse-products'
@@ -93,6 +94,7 @@ export interface Container {
   readonly listCategories: ListCategories
   readonly toggleFavorite: ToggleFavorite
   readonly listFavoriteIds: ListFavoriteIds
+  readonly listFavorites: ListFavorites
   readonly getProductDetail: GetProductDetail
   readonly listReviews: ListReviews
   readonly listRelatedProducts: ListRelatedProducts
@@ -207,6 +209,7 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     loadHome: new LoadHome(catalogRepository),
     listCategories: new ListCategories(catalogRepository),
     toggleFavorite: new ToggleFavorite(favoritesRepository),
+    listFavorites: new ListFavorites(favoritesRepository),
     listFavoriteIds: new ListFavoriteIds(favoritesRepository),
     getProductDetail: new GetProductDetail(catalogRepository),
     listReviews: new ListReviews(catalogRepository),
