@@ -13,12 +13,29 @@ import { useSessionStore } from '../state/session.store'
  * en cada arranque.
  */
 export function useBootstrapSession(): void {
-  const { restoreSession, sessionStorage } = useContainer()
+  const { restoreSession, sessionStorage, loadPreferences } = useContainer()
 
   useEffect(() => {
     let cancelled = false
 
     async function bootstrap(): Promise<void> {
+      // El idioma y la divisa guardados se aplican ANTES que nada. El cliente HTTP los lee del
+      // almacén de sesión para componer cada petición, así que aplicarlos después dejaría que la
+      // primera lectura saliera con los valores por defecto y la pantalla cambiara sola un instante
+      // más tarde: precios en dólares que pasan a euros delante de quien mira.
+      //
+      // Va aparte, y no dentro del intento general, porque un fallo del almacén NO puede impedir
+      // entrar: la preferencia es un adorno y la sesión no. Sin este resguardo, un almacén ilegible
+      // rompía la promesa aquí mismo y la aplicación se quedaba en «cargando» para siempre, sin
+      // llegar nunca ni a restaurar la sesión ni a declararse anónima.
+      try {
+        const preferidas = await loadPreferences.execute()
+        if (preferidas.locale) useSessionStore.getState().setLocale(preferidas.locale)
+        if (preferidas.currency) useSessionStore.getState().setCurrency(preferidas.currency)
+      } catch {
+        // Se arranca con el idioma y la divisa por defecto.
+      }
+
       const stored = await sessionStorage.load()
       if (stored) useSessionStore.getState().setTokens(stored.accessToken, stored.refreshToken)
 
@@ -37,5 +54,5 @@ export function useBootstrapSession(): void {
     return () => {
       cancelled = true
     }
-  }, [restoreSession, sessionStorage])
+  }, [restoreSession, sessionStorage, loadPreferences])
 }

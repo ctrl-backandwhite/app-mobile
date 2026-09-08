@@ -24,6 +24,10 @@ import { RemoveFromCart } from '@features/cart/domain/usecases/remove-from-cart'
 import { SaveForLater } from '@features/cart/domain/usecases/save-for-later'
 import { UpdateQuantity } from '@features/cart/domain/usecases/update-quantity'
 import { AsyncPreferenceStore } from '@core/storage/async-storage.adapter'
+import { HttpRegionRepository } from '@features/account/data/repositories/http-region.repository'
+import { RegionRepository } from '@features/account/domain/ports/region-repository'
+import { ListCurrencies, ListLanguages } from '@features/account/domain/usecases/list-region-options'
+import { LoadPreferences, SavePreferences } from '@features/account/domain/usecases/preferences'
 import { ExpoPaymentApprovalGateway } from '@features/checkout/data/repositories/expo-payment-approval.gateway'
 import { HttpAddressRepository } from '@features/checkout/data/repositories/http-address.repository'
 import { HttpBillingRepository } from '@features/checkout/data/repositories/http-billing.repository'
@@ -95,6 +99,10 @@ export interface Container {
   readonly toggleFavorite: ToggleFavorite
   readonly listFavoriteIds: ListFavoriteIds
   readonly listFavorites: ListFavorites
+  readonly listLanguages: ListLanguages
+  readonly listCurrencies: ListCurrencies
+  readonly loadPreferences: LoadPreferences
+  readonly savePreferences: SavePreferences
   readonly getProductDetail: GetProductDetail
   readonly listReviews: ListReviews
   readonly listRelatedProducts: ListRelatedProducts
@@ -180,6 +188,8 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const authRepository: AuthRepository = new HttpAuthRepository(http, captcha)
   const catalogRepository: CatalogRepository = new HttpCatalogRepository(http)
   const favoritesRepository: FavoritesRepository = new HttpFavoritesRepository(http)
+  const regionRepository: RegionRepository = new HttpRegionRepository(http)
+  const preferenceStore = new AsyncPreferenceStore()
   // La cesta va al servidor cuando hay sesión y al dispositivo cuando no. Se decide en cada
   // operación, no al construir el contenedor: la sesión cambia con la aplicación abierta.
   const cartStorage = new SessionAwareCartStorage(
@@ -210,6 +220,10 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     listCategories: new ListCategories(catalogRepository),
     toggleFavorite: new ToggleFavorite(favoritesRepository),
     listFavorites: new ListFavorites(favoritesRepository),
+    listLanguages: new ListLanguages(regionRepository),
+    listCurrencies: new ListCurrencies(regionRepository),
+    loadPreferences: new LoadPreferences(preferenceStore),
+    savePreferences: new SavePreferences(preferenceStore),
     listFavoriteIds: new ListFavoriteIds(favoritesRepository),
     getProductDetail: new GetProductDetail(catalogRepository),
     listReviews: new ListReviews(catalogRepository),
