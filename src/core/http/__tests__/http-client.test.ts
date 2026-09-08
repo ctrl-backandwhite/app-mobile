@@ -43,6 +43,25 @@ describe('HttpClient', () => {
     await expect(client.get('/me')).resolves.toEqual({ id: '1' })
   })
 
+  /**
+   * El backend necesita saber que quien pide es la aplicación para devolverla a su enlace profundo
+   * al terminar un pago. Sin esta cabecera, PayPal devolvía a la web: la vista de navegador no se
+   * cerraba, la persona la cerraba a mano y la app entendía «cancelado» habiendo pagado.
+   *
+   * Viaja un IDENTIFICADOR, nunca la dirección de vuelta: esa la elige el servidor entre las que él
+   * mismo tiene configuradas.
+   */
+  it('se identifica como la aplicación móvil en cada petición', async () => {
+    const client = new HttpClient('https://api.test', bridgeWith('token-1', 'refresh-1'))
+    const mock = new MockAdapter(client.raw)
+    mock.onGet('/me').reply((config) => {
+      expect(config.headers?.['X-Client']).toBe('mobile')
+      return [200, {}]
+    })
+
+    await client.get('/me')
+  })
+
   it('omite la cabecera de país cuando no hay usuario con país', async () => {
     const bridge = bridgeWith('token-1', 'refresh-1')
     bridge.getCountry = () => null

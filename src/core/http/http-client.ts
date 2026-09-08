@@ -73,6 +73,12 @@ export class HttpClient {
       const locale = this.session.getLocale()
       config.headers.set('Accept-Language', locale)
       config.headers.set('X-Lang', locale)
+      // Quién está pidiendo. Lo usa el backend para saber a dónde devolver desde una pasarela de
+      // pago: la web vuelve a una pantalla suya y la aplicación a su enlace profundo. Es un
+      // IDENTIFICADOR, nunca la dirección de vuelta —esa la elige el servidor entre las que él
+      // mismo tiene configuradas—; mandar la dirección convertiría el cobro en un redirector
+      // abierto. Mismo criterio que el `client=mobile` del acceso con Google.
+      config.headers.set('X-Client', 'mobile')
       return config
     })
   }

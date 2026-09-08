@@ -8,8 +8,18 @@ import {
   PaymentApprovalGateway,
 } from '@features/checkout/domain/ports/payment-approval-gateway'
 
-/** Enlace profundo que el backend tiene configurado como destino de esta aplicación. */
-const CALLBACK_URL = 'nx036://auth/callback'
+/**
+ * Prefijo de vuelta del pago. La vista de navegador se cierra sola en cuanto la navegación llega a
+ * una dirección que empiece por aquí, y el backend tiene configuradas dos que lo comparten:
+ * `nx036://pago/retorno` cuando se aprueba y `nx036://pago/cancelado` cuando no.
+ *
+ * Antes se pasaba el enlace del ACCESO (`nx036://auth/callback`), que el pago no usa nunca: la
+ * vista no se cerraba jamás sola.
+ */
+const CALLBACK_URL = 'nx036://pago'
+
+/** Ruta con la que el backend marca que se ha salido de la pasarela sin pagar. */
+const CANCELADO = '/cancelado'
 
 /**
  * Aprobación de un pago en la web del proveedor.
@@ -17,9 +27,7 @@ const CALLBACK_URL = 'nx036://auth/callback'
  * Se abre en la vista de navegador del sistema: una vista incrustada
  * podría leer las credenciales que se teclean, y los proveedores de pago las rechazan por eso.
  *
- * PENDIENTE DE ESTRENO: hoy la tramitación no devuelve ningún enlace de aprobación, así que nadie
- * llama a este puerta de enlace. Está aquí —y probada— para que el día que el backend publique ese
- * enlace en la respuesta del pedido, el pago con PayPal funcione sin más cambios.
+ * Lo usan el pago de un pedido con PayPal y la recarga del monedero.
  */
 export class ExpoPaymentApprovalGateway implements PaymentApprovalGateway {
   async approve(approvalUrl: string): Promise<Result<ApprovalOutcome, AppError>> {
@@ -39,6 +47,10 @@ export class ExpoPaymentApprovalGateway implements PaymentApprovalGateway {
 
     // Cerrar la pestaña o pulsar atrás no es un fallo: es alguien que ha decidido no pagar todavía.
     if (result.type !== 'success') return ok('cancelled')
+
+    // Las dos vueltas cierran la vista, así que el tipo de resultado no distingue: hay que mirar a
+    // cuál se ha vuelto. Sin esto, cancelar en PayPal se leería como pagado.
+    if (result.url.includes(CANCELADO)) return ok('cancelled')
 
     // Que el proveedor haya devuelto a la aplicación NO significa que el dinero se haya movido: el
     // cobro lo confirma el backend contra la pasarela. Aquí solo se informa de que la persona volvió.
