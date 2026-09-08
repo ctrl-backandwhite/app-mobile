@@ -1,4 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react-native'
+import { router } from 'expo-router'
 
 import { AppError } from '@core/errors/app-error'
 import { err, ok, Result } from '@core/result/result'
@@ -192,5 +193,16 @@ describe('WalletScreen', () => {
     expect(await screen.findByText('Recarga')).toBeTruthy()
     expect(screen.getByText('+$25.00')).toBeTruthy()
     expect(screen.getByTestId('movimiento-t-9')).toBeTruthy()
+  })
+
+  it('lleva a recargar', async () => {
+    await renderCatalog(<WalletScreen />, contenedor() as never)
+    await screen.findByText('110,40 €')
+
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('ir-a-recargar'))
+    })
+
+    expect(router.push).toHaveBeenCalledWith('/wallet-recharge')
   })
 })

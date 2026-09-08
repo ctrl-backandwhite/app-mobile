@@ -147,3 +147,107 @@ describe('HttpWalletRepository · movimientos', () => {
     expect(!result.ok && result.error.code).toBe('CONTRACT')
   })
 })
+
+describe('HttpWalletRepository · recarga', () => {
+  it('pide los importes sugeridos en la divisa activa', async () => {
+    const { client, mock } = makeClient()
+    mock.onGet('/me/wallet/recharge/options').reply(200, {
+      currency: 'EUR',
+      symbol: '€',
+      presets: [{ amount: 25, formatted: '25,00 €' }],
+    })
+
+    const result = await new HttpWalletRepository(client).rechargeOptions('EUR')
+
+    expect(mock.history.get[0]?.params).toEqual({ currency: 'EUR' })
+    expect(result.ok && result.value.presets).toEqual([{ amount: 25, formatted: '25,00 €' }])
+  })
+
+  /** Sin texto del servidor se compone con su símbolo y su cifra: dar forma no es convertir. */
+  it('compone el texto del importe si el backend no lo manda', async () => {
+    const { client, mock } = makeClient()
+    mock
+      .onGet('/me/wallet/recharge/options')
+      .reply(200, { currency: 'EUR', symbol: '€', presets: [{ amount: 50 }] })
+
+    const result = await new HttpWalletRepository(client).rechargeOptions('EUR')
+
+    expect(result.ok && result.value.presets.map((p) => p.formatted)).toEqual(['€50.00'])
+  })
+
+  /**
+   * El importe viaja en la divisa ACTIVA. Mandarlo ya convertido significaría dos tipos de cambio
+   * distintos —el del teléfono y el del servidor— para un mismo cobro.
+   */
+  it('abre la recarga con el importe en la divisa activa', async () => {
+    const { client, mock } = makeClient()
+    mock.onPost('/me/wallet/recharge').reply(200, {
+      paymentId: 'p-1',
+      status: 'PENDING',
+      amountUsdCents: 2700,
+      chargeFormatted: '25,00 €',
+      clientSecret: 'secreto',
+    })
+
+    const result = await new HttpWalletRepository(client).startRecharge({
+      method: 'CARD',
+      amount: 25,
+      currency: 'EUR',
+    })
+
+    expect(JSON.parse(mock.history.post[0]?.data ?? '{}')).toEqual({
+      method: 'CARD',
+      currencyDisplay: 'EUR',
+      amountDisplay: 25,
+    })
+    expect(result.ok && result.value.clientSecret).toBe('secreto')
+    expect(result.ok && result.value.chargeFormatted).toBe('25,00 €')
+  })
+
+  it('escribe el cargo en dólares si el backend no lo formatea', async () => {
+    const { client, mock } = makeClient()
+    mock
+      .onPost('/me/wallet/recharge')
+      .reply(200, { paymentId: 'p-1', status: 'PENDING', amountUsdCents: 2700 })
+
+    const result = await new HttpWalletRepository(client).startRecharge({
+      method: 'CARD',
+      amount: 25,
+      currency: 'EUR',
+    })
+
+    expect(result.ok && result.value.chargeFormatted).toBe('$27.00')
+  })
+
+  it('cierra el cobro de la tarjeta', async () => {
+    const { client, mock } = makeClient()
+    mock.onPost('/me/wallet/recharge/p-1/confirm').reply(200, {})
+
+    const result = await new HttpWalletRepository(client).confirmRecharge('p-1')
+
+    expect(result.ok).toBe(true)
+  })
+
+  it('captura el cobro de PayPal con el identificador como parámetro', async () => {
+    const { client, mock } = makeClient()
+    mock.onPost('/me/wallet/paypal/capture').reply(200, {})
+
+    const result = await new HttpWalletRepository(client).capturePayPal('p-2')
+
+    expect(result.ok).toBe(true)
+    expect(mock.history.post[0]?.params).toEqual({ paymentId: 'p-2' })
+  })
+
+  it('falla con CONTRACT si la recarga viene sin identificador de pago', async () => {
+    const { client, mock } = makeClient()
+    mock.onPost('/me/wallet/recharge').reply(200, { status: 'PENDING' })
+
+    const result = await new HttpWalletRepository(client).startRecharge({
+      method: 'CARD',
+      amount: 25,
+      currency: 'EUR',
+    })
+
+    expect(!result.ok && result.error.code).toBe('CONTRACT')
+  })
+})

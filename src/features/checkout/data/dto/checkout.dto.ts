@@ -102,6 +102,27 @@ export const walletTransactionDto = z.object({
   balanceAfterFormatted: z.string().nullable().optional(),
 })
 
+export const rechargeOptionsDto = z.object({
+  currency: z.string().default(''),
+  symbol: z.string().default(''),
+  presets: z
+    .array(z.object({ amount: z.number(), formatted: z.string().nullable().optional() }))
+    .default([]),
+})
+
+/**
+ * La recarga abierta. `clientSecret` y `approveUrl` llegan según el método, nunca los dos: el primero
+ * es de la tarjeta y el segundo de PayPal.
+ */
+export const rechargeDto = z.object({
+  paymentId: z.string(),
+  status: z.string().default(''),
+  amountUsdCents: z.number().default(0),
+  chargeFormatted: z.string().nullable().optional(),
+  clientSecret: z.string().nullable().optional(),
+  approveUrl: z.string().nullable().optional(),
+})
+
 export const walletTransactionPageDto = z.object({
   items: z.array(walletTransactionDto).default([]),
   page: z.number().default(0),
@@ -157,6 +178,8 @@ export type PlacedOrderDto = z.infer<typeof placedOrderDto>
 export type WalletDto = z.infer<typeof walletDto>
 export type WalletTransactionDto = z.infer<typeof walletTransactionDto>
 export type WalletTransactionPageDto = z.infer<typeof walletTransactionPageDto>
+export type RechargeOptionsDto = z.infer<typeof rechargeOptionsDto>
+export type RechargeDto = z.infer<typeof rechargeDto>
 export type PaymentMethodDto = z.infer<typeof paymentMethodDto>
 export type SavedCardChargeDto = z.infer<typeof savedCardChargeDto>
 export type BillingConfigDto = z.infer<typeof billingConfigDto>

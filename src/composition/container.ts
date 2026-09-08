@@ -66,6 +66,10 @@ import { CreateAddress } from '@features/checkout/domain/usecases/create-address
 import { GetBillingConfig } from '@features/checkout/domain/usecases/get-billing-config'
 import { GetWalletBalance } from '@features/checkout/domain/usecases/get-wallet-balance'
 import { ListWalletTransactions } from '@features/checkout/domain/usecases/list-wallet-transactions'
+import {
+  GetRechargeOptions,
+  RechargeWallet,
+} from '@features/checkout/domain/usecases/recharge-wallet'
 import { ListAddresses } from '@features/checkout/domain/usecases/list-addresses'
 import { ListPaymentMethods } from '@features/checkout/domain/usecases/list-payment-methods'
 import { ListRegions } from '@features/checkout/domain/usecases/list-regions'
@@ -154,6 +158,8 @@ export interface Container {
   readonly placeOrder: PlaceOrder
   readonly getWalletBalance: GetWalletBalance
   readonly listWalletTransactions: ListWalletTransactions
+  readonly getRechargeOptions: GetRechargeOptions
+  readonly rechargeWallet: RechargeWallet
   readonly changePassword: ChangePassword
   readonly listSessions: ListSessions
   readonly revokeSession: RevokeSession
@@ -293,6 +299,14 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     placeOrder: new PlaceOrder(new HttpCheckoutRepository(http)),
     getWalletBalance: new GetWalletBalance(walletRepository),
     listWalletTransactions: new ListWalletTransactions(walletRepository),
+    getRechargeOptions: new GetRechargeOptions(walletRepository),
+    // Los dos caminos del cobro: el reto del banco para la tarjeta y el navegador del sistema para
+    // PayPal. Ninguno da el saldo por subido: eso lo cierra el backend.
+    rechargeWallet: new RechargeWallet(
+      walletRepository,
+      new StripeCardAuthenticator(),
+      new ExpoPaymentApprovalGateway(),
+    ),
     changePassword: new ChangePassword(accountRepository),
     listSessions: new ListSessions(accountRepository),
     revokeSession: new RevokeSession(accountRepository),

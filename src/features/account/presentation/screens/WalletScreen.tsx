@@ -1,9 +1,10 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { router } from 'expo-router'
 import { ReactElement } from 'react'
 import { ActivityIndicator, FlatList, Text, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { Card, Screen } from '@ds/components'
+import { Button, Card, Screen } from '@ds/components'
 import { EmptyState } from '@features/catalog/presentation/components'
 import {
   labelOf,
@@ -63,6 +64,14 @@ export function WalletScreen(): ReactElement {
             {`Retenido por operaciones en curso: ${saldo.data.holdFormatted}`}
           </Text>
         ) : null}
+
+        <View className="mt-4">
+          <Button
+            testID="ir-a-recargar"
+            title="Recargar"
+            onPress={(): void => router.push('/wallet-recharge')}
+          />
+        </View>
       </Card>
 
       <Text className="font-medium text-[15px] text-base-content">Movimientos</Text>

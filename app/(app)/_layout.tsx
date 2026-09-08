@@ -23,6 +23,10 @@ export default function AppLayout(): ReactElement {
       <Stack.Screen name="wallet" options={{ headerShown: true, title: 'Monedero' }} />
       <Stack.Screen name="notifications" options={{ headerShown: true, title: 'Avisos' }} />
       <Stack.Screen
+        name="wallet-recharge"
+        options={{ headerShown: true, title: 'Recargar monedero' }}
+      />
+      <Stack.Screen
         name="settings/region"
         options={{ headerShown: true, title: 'Idioma y divisa' }}
       />

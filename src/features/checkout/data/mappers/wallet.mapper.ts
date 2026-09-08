@@ -1,11 +1,18 @@
 import { Page } from '@features/catalog/domain/entities/page'
 import { WalletBalance } from '@features/checkout/domain/entities/wallet'
+import { Recharge, RechargeOptions } from '@features/checkout/domain/entities/wallet-recharge'
 import {
   toWalletTransactionKind,
   WalletTransaction,
 } from '@features/checkout/domain/entities/wallet-transaction'
 
-import { WalletDto, WalletTransactionDto, WalletTransactionPageDto } from '../dto/checkout.dto'
+import {
+  RechargeDto,
+  RechargeOptionsDto,
+  WalletDto,
+  WalletTransactionDto,
+  WalletTransactionPageDto,
+} from '../dto/checkout.dto'
 
 import { text } from './nullable'
 
@@ -46,5 +53,28 @@ export function toWalletTransactionPage(dto: WalletTransactionPageDto): Page<Wal
     size: dto.size,
     totalElements: dto.totalElements,
     totalPages: dto.totalPages,
+  }
+}
+
+export function toRechargeOptions(dto: RechargeOptionsDto): RechargeOptions {
+  return {
+    currency: dto.currency,
+    symbol: dto.symbol,
+    presets: dto.presets.map((p) => ({
+      amount: p.amount,
+      // Sin texto del servidor se compone con su símbolo y su cifra, en su misma moneda. Eso es dar
+      // forma, no convertir: aquí no se aplica ningún tipo de cambio.
+      formatted: text(p.formatted) ?? `${dto.symbol}${p.amount.toFixed(2)}`,
+    })),
+  }
+}
+
+export function toRecharge(dto: RechargeDto): Recharge {
+  return {
+    paymentId: dto.paymentId,
+    status: dto.status,
+    chargeFormatted: text(dto.chargeFormatted) ?? `$${(dto.amountUsdCents / 100).toFixed(2)}`,
+    clientSecret: text(dto.clientSecret),
+    approveUrl: text(dto.approveUrl),
   }
 }
