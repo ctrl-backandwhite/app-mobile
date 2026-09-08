@@ -1,6 +1,8 @@
 import { act, fireEvent, screen } from '@testing-library/react-native'
 import { router } from 'expo-router'
 
+import { AppError } from '@core/errors/app-error'
+import { err, ok } from '@core/result/result'
 import { aUser } from '@features/auth/domain/testing/fake-auth-repository'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 import { renderCatalog } from '@features/catalog/presentation/testing/render-catalog'
@@ -90,7 +92,60 @@ describe('AccountScreen', () => {
 
   it('cerrar sesión vacía el estado y lleva al acceso', async () => {
     const signOut = { execute: jest.fn().mockResolvedValue(undefined) }
-    await renderCatalog(<AccountScreen />, { signOut: signOut as never })
+    await renderCatalog(<AccountScreen />, {
+      signOut: signOut as never,
+      disablePushNotifications: { execute: jest.fn().mockResolvedValue(ok(undefined)) } as never,
+    })
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Cerrar sesión'))
+    })
+
+    await screen.findByTestId('cuenta-vacia')
+    expect(signOut.execute).toHaveBeenCalled()
+    expect(router.replace).toHaveBeenCalledWith('/login')
+  })
+
+  /**
+   * El dispositivo se retira ANTES de cerrar la sesión, que es cuando el token todavía vale. Sin
+   * esto, el siguiente aviso de esta cuenta llegaría a un teléfono que ya no es suyo —o a manos
+   * ajenas si se prestó—, y un aviso lleva su título y su cuerpo.
+   */
+  it('deja de recibir avisos en este teléfono ANTES de cerrar la sesión', async () => {
+    const orden: string[] = []
+    const disablePushNotifications = {
+      execute: jest.fn(async () => {
+        orden.push('baja')
+        return ok(undefined)
+      }),
+    }
+    const signOut = {
+      execute: jest.fn(async () => {
+        orden.push('salir')
+      }),
+    }
+    await renderCatalog(<AccountScreen />, {
+      signOut: signOut as never,
+      disablePushNotifications: disablePushNotifications as never,
+    })
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Cerrar sesión'))
+    })
+
+    await screen.findByTestId('cuenta-vacia')
+    expect(orden).toEqual(['baja', 'salir'])
+  })
+
+  /** Si la baja falla se cierra la sesión igual: dejar a alguien dentro sería peor. */
+  it('cierra la sesión aunque no se pueda dar de baja el dispositivo', async () => {
+    const signOut = { execute: jest.fn().mockResolvedValue(undefined) }
+    await renderCatalog(<AccountScreen />, {
+      signOut: signOut as never,
+      disablePushNotifications: {
+        execute: jest.fn().mockResolvedValue(err(new AppError('NETWORK', 'sin conexión'))),
+      } as never,
+    })
 
     await act(async () => {
       fireEvent.press(screen.getByText('Cerrar sesión'))

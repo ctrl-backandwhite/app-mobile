@@ -29,7 +29,7 @@ const STAFF_NOTICE =
  * sitio a lo que venga después.
  */
 export function AccountScreen(): ReactElement {
-  const { signOut } = useContainer()
+  const { signOut, disablePushNotifications } = useContainer()
   const user = useSessionStore((state) => state.user)
   const currency = useSessionStore((state) => state.currency)
   const locale = useSessionStore((state) => state.locale)
@@ -38,6 +38,13 @@ export function AccountScreen(): ReactElement {
   async function cierraSesion(): Promise<void> {
     setSaliendo(true)
     try {
+      // Se retira ANTES de cerrar la sesión, que es cuando el token todavía vale. Sin esto, el
+      // siguiente aviso de esta cuenta llegaría a un teléfono que ya no es suyo —o a manos ajenas si
+      // se prestó—, y un aviso lleva título y cuerpo: sería una fuga de verdad.
+      //
+      // Si falla, se cierra la sesión igual: dejar a alguien dentro porque no se pudo dar de baja un
+      // dispositivo sería peor que el problema que evita.
+      await disablePushNotifications.execute()
       await signOut.execute()
       // El caso de uso ya ha borrado el almacén cifrado; el estado en memoria se vacía aquí para que
       // la guarda de rutas deje de dar por buena la sesión.

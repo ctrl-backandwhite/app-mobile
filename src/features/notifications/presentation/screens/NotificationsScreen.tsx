@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ReactElement, useState } from 'react'
-import { FlatList, Pressable, Text, View } from 'react-native'
+import { FlatList, Pressable, Switch, Text, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
 import { Alert, Screen } from '@ds/components'
@@ -22,10 +22,16 @@ import {
  * ES abrirlo, y un botón aparte sería pedir dos gestos para una sola intención.
  */
 export function NotificationsScreen(): ReactElement {
-  const { listNotifications, markNotificationRead, markAllNotificationsRead, archiveNotification } =
-    useContainer()
+  const {
+    listNotifications,
+    markNotificationRead,
+    markAllNotificationsRead,
+    archiveNotification,
+    enablePushNotifications,
+  } = useContainer()
   const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
+  const [avisosEnElMovil, setAvisosEnElMovil] = useState(false)
 
   const avisos = useQuery({
     queryKey: ['notifications'],
@@ -76,8 +82,52 @@ export function NotificationsScreen(): ReactElement {
     onError: falla,
   })
 
+  /**
+   * El permiso se pide AQUÍ y no al arrancar. Un diálogo de permisos en el primer segundo se deniega
+   * casi siempre —no se ha visto todavía para qué sirve— y en iOS solo se puede preguntar una vez.
+   * Pedido desde la pantalla de avisos, quien lo activa ya sabe qué está activando.
+   */
+  const activarEnElMovil = useMutation({
+    mutationFn: async () => {
+      const result = await enablePushNotifications.execute()
+      if (!result.ok) throw result.error
+      return result.value
+    },
+    onSuccess: (activado) => {
+      setAvisosEnElMovil(activado)
+      // Que no se active es un caso normal: permiso denegado o un teléfono que no puede recibirlos.
+      setError(activado ? null : 'No se han podido activar los avisos en este dispositivo.')
+    },
+    onError: falla,
+  })
+
   const items = avisos.data ?? []
   const sinLeer = unreadCountOf(items)
+
+  /**
+   * El interruptor va SIEMPRE visible, también con la bandeja vacía: quien todavía no ha recibido
+   * ningún aviso es justo quien más necesita poder activarlos, y esconderlo tras tener avisos sería
+   * pedir que ocurra lo que se quiere que avise.
+   */
+  const interruptorDeAvisos = (
+    <View
+      className="flex-row items-center justify-between rounded-box border border-base-300 bg-base-100 p-3"
+    >
+      <View className="flex-1 pr-3">
+        <Text className="font-medium text-[14px] text-base-content">Avisos en el móvil</Text>
+        <Text className="mt-0.5 text-[12px] text-base-content opacity-60">
+          Recibe un aviso cuando cambie el estado de un pedido.
+        </Text>
+      </View>
+      <Switch
+        testID="avisos-en-el-movil"
+        accessibilityLabel="Recibir avisos en este dispositivo"
+        value={avisosEnElMovil}
+        disabled={activarEnElMovil.isPending}
+        onValueChange={(): void => activarEnElMovil.mutate()}
+      />
+    </View>
+  )
 
   if (avisos.isLoading) {
     return (
@@ -103,6 +153,12 @@ export function NotificationsScreen(): ReactElement {
   if (items.length === 0) {
     return (
       <Screen>
+        {interruptorDeAvisos}
+        {error ? (
+          <View className="mt-3">
+            <Alert variant="error" message={error} />
+          </View>
+        ) : null}
         <EmptyState
           title="No tienes avisos"
           message="Aquí aparecerán los cambios de tus pedidos y los mensajes de la plataforma."
@@ -123,6 +179,7 @@ export function NotificationsScreen(): ReactElement {
         onRefresh={(): void => void avisos.refetch()}
         ListHeaderComponent={
           <View className="gap-2 pb-1">
+            {interruptorDeAvisos}
             {error ? <Alert variant="error" message={error} /> : null}
             {sinLeer > 0 ? (
               <View className="flex-row items-center justify-between">

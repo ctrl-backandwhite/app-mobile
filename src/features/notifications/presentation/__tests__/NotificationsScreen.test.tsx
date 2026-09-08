@@ -24,6 +24,7 @@ interface Dobles {
   markNotificationRead: { execute: jest.Mock }
   markAllNotificationsRead: { execute: jest.Mock }
   archiveNotification: { execute: jest.Mock }
+  enablePushNotifications: { execute: jest.Mock }
 }
 
 function contenedor(
@@ -34,6 +35,7 @@ function contenedor(
     markNotificationRead: { execute: jest.fn().mockResolvedValue(ok(undefined)) },
     markAllNotificationsRead: { execute: jest.fn().mockResolvedValue(ok(undefined)) },
     archiveNotification: { execute: jest.fn().mockResolvedValue(ok(undefined)) },
+    enablePushNotifications: { execute: jest.fn().mockResolvedValue(ok(true)) },
   }
 }
 
@@ -205,5 +207,51 @@ describe('NotificationsScreen', () => {
     await pulsa('marcar-todo-leido')
 
     expect(await screen.findByText('caído')).toBeTruthy()
+  })
+
+  /**
+   * El permiso se pide desde AQUÍ y no al arrancar: un diálogo de permisos en el primer segundo se
+   * deniega casi siempre, y en iOS solo se puede preguntar una vez.
+   */
+  it('activa los avisos del móvil desde el interruptor', async () => {
+    const deps = contenedor()
+    await renderCatalog(<NotificationsScreen />, deps as never)
+    await screen.findByTestId('aviso-n-1')
+
+    await act(async () => {
+      fireEvent(screen.getByTestId('avisos-en-el-movil'), 'valueChange', true)
+    })
+
+    expect(deps.enablePushNotifications.execute).toHaveBeenCalled()
+    expect(screen.getByTestId('avisos-en-el-movil').props.value).toBe(true)
+  })
+
+  /**
+   * Quien no ha recibido ningún aviso todavía es justo quien más necesita poder activarlos: esconder
+   * el interruptor hasta tener avisos sería pedir que ocurra lo que se quiere que avise.
+   */
+  it('deja activar los avisos también con la bandeja vacía', async () => {
+    const deps = contenedor(ok([]))
+    await renderCatalog(<NotificationsScreen />, deps as never)
+
+    expect(await screen.findByTestId('avisos-en-el-movil')).toBeTruthy()
+    expect(screen.getByText('No tienes avisos')).toBeTruthy()
+  })
+
+  /** Que no se activen es NORMAL —permiso denegado, emulador—; se dice sin alarmar y sin romper nada. */
+  it('avisa cuando el dispositivo no puede recibir avisos', async () => {
+    const deps = contenedor()
+    deps.enablePushNotifications.execute.mockResolvedValue(ok(false))
+    await renderCatalog(<NotificationsScreen />, deps as never)
+    await screen.findByTestId('aviso-n-1')
+
+    await act(async () => {
+      fireEvent(screen.getByTestId('avisos-en-el-movil'), 'valueChange', true)
+    })
+
+    expect(
+      await screen.findByText('No se han podido activar los avisos en este dispositivo.'),
+    ).toBeTruthy()
+    expect(screen.getByTestId('avisos-en-el-movil').props.value).toBe(false)
   })
 })

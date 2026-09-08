@@ -57,6 +57,12 @@ import {
   MarkAllNotificationsRead,
   MarkNotificationRead,
 } from '@features/notifications/domain/usecases/notifications'
+import { ExpoPushGateway } from '@features/notifications/data/repositories/expo-push.gateway'
+import { HttpPushRegistry } from '@features/notifications/data/repositories/http-push.registry'
+import {
+  DisablePushNotifications,
+  EnablePushNotifications,
+} from '@features/notifications/domain/usecases/push'
 import { HttpWalletRepository } from '@features/checkout/data/repositories/http-wallet.repository'
 import { WalletRepository } from '@features/checkout/domain/ports/wallet-repository'
 import { StripeCardAuthenticator } from '@features/checkout/data/repositories/stripe-card-authenticator'
@@ -171,6 +177,8 @@ export interface Container {
   readonly markNotificationRead: MarkNotificationRead
   readonly markAllNotificationsRead: MarkAllNotificationsRead
   readonly archiveNotification: ArchiveNotification
+  readonly enablePushNotifications: EnablePushNotifications
+  readonly disablePushNotifications: DisablePushNotifications
   readonly listPaymentMethods: ListPaymentMethods
   readonly payWithSavedCard: PayWithSavedCard
   readonly payWithProvider: PayWithProvider
@@ -234,6 +242,10 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const accountRepository: AccountRepository = new HttpAccountRepository(http)
   const subscriptionRepository: SubscriptionRepository = new HttpSubscriptionRepository(http)
   const notificationsRepository: NotificationsRepository = new HttpNotificationsRepository(http)
+  // El dispositivo y el servidor son dos puertos distintos a propósito: pedir el permiso es cosa del
+  // teléfono y guardar el token es cosa del backend.
+  const pushGateway = new ExpoPushGateway()
+  const pushRegistry = new HttpPushRegistry(http)
   const preferenceStore = new AsyncPreferenceStore()
   // La cesta va al servidor cuando hay sesión y al dispositivo cuando no. Se decide en cada
   // operación, no al construir el contenedor: la sesión cambia con la aplicación abierta.
@@ -318,6 +330,8 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     markNotificationRead: new MarkNotificationRead(notificationsRepository),
     markAllNotificationsRead: new MarkAllNotificationsRead(notificationsRepository),
     archiveNotification: new ArchiveNotification(notificationsRepository),
+    enablePushNotifications: new EnablePushNotifications(pushGateway, pushRegistry),
+    disablePushNotifications: new DisablePushNotifications(pushGateway, pushRegistry),
     listPaymentMethods: new ListPaymentMethods(paymentMethodsRepository),
     // Con autenticador: si el banco pide 3-D Secure, el SDK abre el reto y DESPUÉS se confirma el
     // cobro contra el backend, que es quien decide si el dinero llegó.

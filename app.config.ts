@@ -48,6 +48,12 @@ const config: ExpoConfig = {
     'expo-router',
     'expo-secure-store',
     'expo-font',
+    /*
+     * Avisos del sistema operativo. El complemento es lo que añade los permisos de Android y las
+     * capacidades de iOS a la compilación nativa: sin él, la biblioteca compila pero el sistema
+     * nunca entrega un aviso, y eso solo se ve en un dispositivo real.
+     */
+    'expo-notifications',
     [
       'expo-splash-screen',
       {
