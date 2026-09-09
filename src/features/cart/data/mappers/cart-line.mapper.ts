@@ -38,5 +38,9 @@ export function toCartLinePayload(line: CartLine): Record<string, unknown> {
     variantLabel: line.variantLabel,
     quantity: line.quantity,
     moq: line.moq,
+    // Obligatorios para el servidor: sin ellos la línea se rechaza con un 400 y la cesta no se
+    // guarda. Se manda lo que se vio al añadir, no un coste: el importe final lo recalcula él.
+    unitPriceSource: line.unitPriceSource ?? 0,
+    sourceCurrency: line.sourceCurrency ?? 'USD',
   }
 }

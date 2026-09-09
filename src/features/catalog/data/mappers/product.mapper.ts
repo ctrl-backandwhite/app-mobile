@@ -20,6 +20,8 @@ export function toProductSummary(dto: ProductSummaryDto): ProductSummary {
     trendScore: num(dto.trendScore),
     status: dto.status,
     displayFormatted: text(dto.displayFormatted),
+    displayPrice: num(dto.displayPrice),
+    displayCurrency: text(dto.displayCurrency),
     originalFormatted: text(dto.originalFormatted),
     discountPercent: num(dto.discountPercent),
     promotionName: text(dto.promotionName),

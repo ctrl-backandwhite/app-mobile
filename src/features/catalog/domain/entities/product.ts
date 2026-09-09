@@ -19,6 +19,9 @@ export interface ProductSummary {
   readonly status: string
   /** Precio final ya formateado por el backend, con el descuento aplicado si lo hay. */
   readonly displayFormatted?: string
+  /** El mismo precio como número y su divisa: es lo que la cesta manda al servidor. */
+  readonly displayPrice?: number
+  readonly displayCurrency?: string
   /** Precio ANTERIOR (el tachado). Solo llega cuando el producto está en promoción. */
   readonly originalFormatted?: string
   readonly discountPercent?: number

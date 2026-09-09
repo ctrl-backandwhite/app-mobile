@@ -18,6 +18,15 @@ export interface CartLine {
   readonly quantity: number
   /** Pedido mínimo del producto: ninguna cantidad de esta línea puede bajar de aquí. */
   readonly moq?: number
+  /**
+   * Precio unitario y divisa con los que se metió en la cesta.
+   *
+   * <p>El servidor los EXIGE al guardar la línea: sin ellos responde 400 y la cesta se queda vacía sin
+   * decir por qué. No son el importe que se cobrará —eso lo recalcula el backend en el presupuesto—,
+   * sino lo que se vio al añadir.
+   */
+  readonly unitPriceSource?: number
+  readonly sourceCurrency?: string
 }
 
 /** Lo que identifica a una línea: el producto Y la variante elegida. */

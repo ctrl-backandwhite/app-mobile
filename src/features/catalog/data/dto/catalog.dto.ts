@@ -29,6 +29,11 @@ export const productSummaryDto = z.object({
   trendScore: z.number().nullish(),
   status: z.string(),
   displayFormatted: z.string().nullish(),
+  // El importe y su divisa, además del texto ya formateado. Hacen falta para meter la línea en la
+  // cesta: el backend exige el precio de origen al guardarla, y de un texto como «3,52 €» no se
+  // puede sacar un número sin volver a interpretar el formato de ocho idiomas.
+  displayPrice: z.number().nullish(),
+  displayCurrency: z.string().nullish(),
   originalFormatted: z.string().nullish(),
   discountPercent: z.number().nullish(),
   promotionName: z.string().nullish(),

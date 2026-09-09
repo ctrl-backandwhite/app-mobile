@@ -38,6 +38,7 @@ export function ProductDetailScreen(): ReactElement {
   const [selection, setSelection] = useState<VariantSelection>({})
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const detail = useQuery({
     queryKey: ['product', slug, locale],
@@ -179,15 +180,27 @@ export function ProductDetailScreen(): ReactElement {
                 sku: variant?.sku,
                 quantity,
                 moq: product.moq,
+                // El servidor los exige al guardar la línea. Es lo que se VE al añadir, no un coste:
+                // el importe que se cobra lo recalcula él en el presupuesto.
+                unitPriceSource: product.displayPrice,
+                sourceCurrency: product.displayCurrency,
               }
-              void addToCart.execute(line).then(() => {
-                setAdded(true)
-                // El aviso se retira solo: dejar el botón en «Añadido» para siempre haría dudar de
-                // si una segunda pulsación ha llegado a hacer algo.
-                setTimeout(() => setAdded(false), 2000)
-              })
+              // Con `catch`: sin él, un fallo al guardar dejaba el botón como si nada hubiera pasado
+              // —ni «Añadido» ni error— y la cesta seguía vacía sin que nadie supiera por qué.
+              void addToCart
+                .execute(line)
+                .then(() => {
+                  setError(null)
+                  setAdded(true)
+                  // El aviso se retira solo: dejar el botón en «Añadido» para siempre haría dudar de
+                  // si una segunda pulsación ha llegado a hacer algo.
+                  setTimeout(() => setAdded(false), 2000)
+                })
+                .catch(() => setError('No se ha podido añadir a la cesta. Inténtalo de nuevo.'))
             }}
           />
+
+          {error ? <Alert variant="error" message={error} /> : null}
 
           {added ? (
             <Pressable onPress={() => router.push('/(app)/(tabs)/cart')} accessibilityRole="link">

@@ -150,4 +150,47 @@ describe('SessionAwareCartStorage', () => {
     expect(local.clear).toHaveBeenCalled()
     expect(remote.clear).not.toHaveBeenCalled()
   })
+
+  /**
+   * El servidor EXIGE el precio de origen al guardar una línea. Sin él responde 400, el almacén
+   * relanza el error y la pantalla —que no lo recogía— dejaba el botón como si nada hubiera pasado:
+   * la cesta se quedaba vacía y no había forma de saber por qué. Era imposible comprar desde la app.
+   */
+  it('manda el precio de origen y su divisa, que el servidor exige', async () => {
+    const { client, mock } = makeClient()
+    mock.onGet('/me/cart').reply(200, [])
+    mock.onPut('/me/cart').reply(204)
+    const storage = new HttpCartStorage(client)
+    await storage.load()
+
+    await storage.save([
+      {
+        productId: 'p-1',
+        slug: 'gorro',
+        title: 'Gorro',
+        quantity: 1,
+        unitPriceSource: 3.52,
+        sourceCurrency: 'EUR',
+      },
+    ])
+
+    const enviado = JSON.parse(mock.history.put[0]?.data ?? '{}')
+    expect(enviado.unitPriceSource).toBe(3.52)
+    expect(enviado.sourceCurrency).toBe('EUR')
+  })
+
+  /** Sin precio conocido se manda cero en dólares: el servidor lo recalcula, pero exige que vaya. */
+  it('nunca deja el precio de origen sin poner', async () => {
+    const { client, mock } = makeClient()
+    mock.onGet('/me/cart').reply(200, [])
+    mock.onPut('/me/cart').reply(204)
+    const storage = new HttpCartStorage(client)
+    await storage.load()
+
+    await storage.save([{ productId: 'p-1', slug: 'gorro', title: 'Gorro', quantity: 1 }])
+
+    const enviado = JSON.parse(mock.history.put[0]?.data ?? '{}')
+    expect(enviado.unitPriceSource).toBe(0)
+    expect(enviado.sourceCurrency).toBe('USD')
+  })
 })
