@@ -54,6 +54,12 @@ const config: ExpoConfig = {
      * nunca entrega un aviso, y eso solo se ve en un dispositivo real.
      */
     'expo-notifications',
+    /*
+     * Deja hablar por HTTP sin cifrar SOLO con la máquina de desarrollo. Sin esto, una compilación de
+     * release contra un backend local falla con «No hay conexión con el servidor» y no hay nada en el
+     * registro que lo explique: Android corta el tráfico en claro desde su versión 9.
+     */
+    './plugins/con-desarrollo-en-claro.js',
     [
       'expo-splash-screen',
       {
