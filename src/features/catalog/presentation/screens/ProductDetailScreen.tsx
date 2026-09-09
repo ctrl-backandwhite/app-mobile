@@ -1,10 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { router, useLocalSearchParams } from 'expo-router'
 import { ReactElement, useMemo, useState } from 'react'
+import { Ionicons } from '@expo/vector-icons'
 import { Pressable, ScrollView, Text, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
 import { Alert, Button, Screen } from '@ds/components'
+import { colors } from '@ds/tokens'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 import {
   imagesFor,
@@ -121,6 +123,23 @@ export function ProductDetailScreen(): ReactElement {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-10">
         <View>
           <ProductGallery images={images} videoUrl={product.videoUrl} />
+          {/*
+            Volver. La ficha no lleva cabecera —la galería sube hasta el borde y una barra encima se
+            comería la primera foto—, así que sin esto la única salida era el gesto del sistema: en
+            iOS no hay tecla de atrás, y quien no acierta con el gesto se sale de la aplicación.
+          */}
+          <View className="absolute left-4 top-4">
+            <Pressable
+              testID="volver-desde-la-ficha"
+              accessibilityRole="button"
+              accessibilityLabel="Volver"
+              onPress={() => router.back()}
+              hitSlop={10}
+              className="h-9 w-9 items-center justify-center rounded-full bg-base-100/90"
+            >
+              <Ionicons name="chevron-back" size={24} color={colors.light.baseContent} />
+            </Pressable>
+          </View>
           <View className="absolute right-4 top-4">
             <FavoriteButton productId={product.id} size={24} />
           </View>

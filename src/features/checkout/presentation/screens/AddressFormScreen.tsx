@@ -66,8 +66,6 @@ export function AddressFormScreen(): ReactElement {
   return (
     <Screen>
       <View className="gap-4 pb-6">
-        <Text className="text-[20px] font-medium text-base-content">Nueva dirección</Text>
-
         <TextField
           label="Etiqueta"
           value={form.label ?? ''}

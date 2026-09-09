@@ -13,7 +13,7 @@ import { useSessionStore } from '../state/session.store'
  * en cada arranque.
  */
 export function useBootstrapSession(): void {
-  const { restoreSession, sessionStorage, loadPreferences } = useContainer()
+  const { restoreSession, sessionStorage, loadPreferences, deviceIdReady } = useContainer()
 
   useEffect(() => {
     let cancelled = false
@@ -36,6 +36,11 @@ export function useBootstrapSession(): void {
         // Se arranca con el idioma y la divisa por defecto.
       }
 
+      // Antes de la PRIMERA petición: el backend reconoce el teléfono por esta cabecera y, sin
+      // ella, registra una sesión nueva que luego aparece en «sesiones abiertas» como si fuera otro
+      // aparato. Un fallo al prepararla no puede impedir entrar.
+      await deviceIdReady.catch(() => undefined)
+
       const stored = await sessionStorage.load()
       if (stored) useSessionStore.getState().setTokens(stored.accessToken, stored.refreshToken)
 
@@ -54,5 +59,5 @@ export function useBootstrapSession(): void {
     return () => {
       cancelled = true
     }
-  }, [restoreSession, sessionStorage, loadPreferences])
+  }, [restoreSession, sessionStorage, loadPreferences, deviceIdReady])
 }

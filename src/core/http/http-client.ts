@@ -3,6 +3,8 @@
 /* eslint-disable import/no-named-as-default-member */
 import axios, { AxiosInstance, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios'
 
+import { getDeviceId } from '@core/device/device-identity'
+import { userAgent } from '@core/device/user-agent'
 import { mapHttpError } from '@core/errors/http-error-mapper'
 import { logger } from '@core/logger/logger'
 
@@ -79,6 +81,15 @@ export class HttpClient {
       // mismo tiene configuradas—; mandar la dirección convertiría el cobro en un redirector
       // abierto. Mismo criterio que el `client=mobile` del acceso con Google.
       config.headers.set('X-Client', 'mobile')
+      // Quién es este teléfono, para que el backend reutilice su fila de sesión en vez de crear una
+      // nueva en cada entrada. Reconocía el dispositivo por una cookie y un cliente nativo no las
+      // lleva: la pantalla de seguridad acababa con cientos de sesiones y ninguna marcada como la
+      // propia. Si aún no se ha cargado no se manda: es preferible a retener la petición.
+      const deviceId = getDeviceId()
+      if (deviceId) config.headers.set('X-Device-Id', deviceId)
+      // Y CÓMO se llama. Sin esto la petición sale como `okhttp/…` y el backend nombraba la sesión
+      // del móvil «Navegador», sin sistema ni aparato.
+      config.headers.set('User-Agent', userAgent())
       return config
     })
   }

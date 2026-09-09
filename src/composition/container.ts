@@ -23,6 +23,7 @@ import { QuoteCart } from '@features/cart/domain/usecases/quote-cart'
 import { RemoveFromCart } from '@features/cart/domain/usecases/remove-from-cart'
 import { SaveForLater } from '@features/cart/domain/usecases/save-for-later'
 import { UpdateQuantity } from '@features/cart/domain/usecases/update-quantity'
+import { loadDeviceId } from '@core/device/device-identity'
 import { AsyncPreferenceStore } from '@core/storage/async-storage.adapter'
 import { HttpRegionRepository } from '@features/account/data/repositories/http-region.repository'
 import { RegionRepository } from '@features/account/domain/ports/region-repository'
@@ -135,6 +136,11 @@ export interface Container {
   readonly listFavorites: ListFavorites
   readonly listLanguages: ListLanguages
   readonly listCurrencies: ListCurrencies
+  /**
+   * Se resuelve cuando el identificador de este teléfono está en memoria. El arranque lo espera:
+   * sin él, la primera petición sale sin identificar y el backend registra una sesión de más.
+   */
+  readonly deviceIdReady: Promise<void>
   readonly loadPreferences: LoadPreferences
   readonly savePreferences: SavePreferences
   readonly getProductDetail: GetProductDetail
@@ -247,6 +253,9 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const pushGateway = new ExpoPushGateway()
   const pushRegistry = new HttpPushRegistry(http)
   const preferenceStore = new AsyncPreferenceStore()
+  // Se lanza aquí, no en la primera petición: el interceptor es síncrono y no puede esperar al
+  // disco. Quien arranca la aplicación espera esta promesa antes de pedir nada.
+  const deviceIdReady = loadDeviceId(preferenceStore)
   // La cesta va al servidor cuando hay sesión y al dispositivo cuando no. Se decide en cada
   // operación, no al construir el contenedor: la sesión cambia con la aplicación abierta.
   const cartStorage = new SessionAwareCartStorage(
@@ -282,6 +291,7 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     listFavorites: new ListFavorites(favoritesRepository),
     listLanguages: new ListLanguages(regionRepository),
     listCurrencies: new ListCurrencies(regionRepository),
+    deviceIdReady,
     loadPreferences: new LoadPreferences(preferenceStore),
     savePreferences: new SavePreferences(preferenceStore),
     listFavoriteIds: new ListFavoriteIds(favoritesRepository),

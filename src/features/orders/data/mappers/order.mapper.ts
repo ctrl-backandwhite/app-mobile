@@ -69,6 +69,7 @@ export function toOrderDetail(dto: OrderDetailDto): OrderDetail {
     currency: dto.currency,
     subtotalFormatted: optional(dto.subtotalFormatted),
     shippingFormatted: optional(dto.shippingFormatted),
+    customsDutyFormatted: optional(dto.customsDutyFormatted),
     taxFormatted: optional(dto.taxFormatted),
     totalFormatted: optional(dto.totalFormatted),
     discountFormatted: optional(dto.discountFormatted),

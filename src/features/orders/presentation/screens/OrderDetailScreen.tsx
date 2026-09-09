@@ -234,6 +234,15 @@ export function OrderDetailScreen(): ReactElement {
           <Text className="mb-1 font-medium text-[15px] text-base-content">Resumen</Text>
           <AmountRow label="Subtotal" value={order.subtotalFormatted} />
           <AmountRow label="Envío" value={order.shippingFormatted} />
+          {/*
+            El arancel va en su propia línea, igual que en el resumen del pago. Sumado dentro del
+            envío, el pedido decía «Envío 9,74 €» donde al pagar ponía «Envío 6,25 € · Aranceles
+            3,49 €»: el mismo dinero contado de dos formas hace dudar de lo cobrado, y en régimen DDP
+            el derecho de aduana es además un concepto con nombre propio.
+          */}
+          {order.customsDutyFormatted ? (
+            <AmountRow label="Aranceles" value={order.customsDutyFormatted} />
+          ) : null}
           <AmountRow label="Impuestos" value={order.taxFormatted} />
           {order.discountFormatted ? (
             <AmountRow label="Descuento" value={order.discountFormatted} />

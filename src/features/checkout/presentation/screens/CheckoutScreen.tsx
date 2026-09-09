@@ -241,8 +241,6 @@ export function CheckoutScreen(): ReactElement {
   return (
     <Screen>
       <View className="gap-5 pb-6">
-        <Text className="text-[20px] font-medium text-base-content">Tramitar pedido</Text>
-
         {items.length === 0 ? (
           <Alert variant="info" message="Tu cesta está vacía: no hay nada que tramitar." />
         ) : (

@@ -1,5 +1,8 @@
 import MockAdapter from 'axios-mock-adapter'
 
+import { loadDeviceId, resetDeviceIdForTests } from '@core/device/device-identity'
+import { PreferenceStore } from '@core/storage/ports'
+
 import { HttpClient } from '../http-client'
 import { SessionBridge } from '../session-bridge'
 
@@ -56,6 +59,44 @@ describe('HttpClient', () => {
     const mock = new MockAdapter(client.raw)
     mock.onGet('/me').reply((config) => {
       expect(config.headers?.['X-Client']).toBe('mobile')
+      return [200, {}]
+    })
+
+    await client.get('/me')
+  })
+
+  /**
+   * Quién es este teléfono. El backend lo reconocía por una cookie y un cliente nativo no las lleva:
+   * cada entrada creaba una sesión NUEVA y la pantalla de seguridad acababa con cientos de filas
+   * entre las que no se distinguía la propia.
+   */
+  it('dice quién es el teléfono y cómo se llama la aplicación', async () => {
+    const guardado = 'aabbccddeeff00112233445566778899'
+    const store: PreferenceStore = {
+      get: async () => guardado,
+      set: async () => undefined,
+      remove: async () => undefined,
+    }
+    await loadDeviceId(store)
+    const client = new HttpClient('https://api.test', bridgeWith('token-1', 'refresh-1'))
+    const mock = new MockAdapter(client.raw)
+    mock.onGet('/me').reply((config) => {
+      expect(config.headers?.['X-Device-Id']).toBe(guardado)
+      expect(config.headers?.['User-Agent']).toMatch(/^NX036\//)
+      return [200, {}]
+    })
+
+    await client.get('/me')
+    resetDeviceIdForTests()
+  })
+
+  /** Sin identificador preparado no se manda la cabecera: mejor eso que retener la petición. */
+  it('no manda identificador de dispositivo si aún no se ha cargado', async () => {
+    resetDeviceIdForTests()
+    const client = new HttpClient('https://api.test', bridgeWith('token-1', 'refresh-1'))
+    const mock = new MockAdapter(client.raw)
+    mock.onGet('/me').reply((config) => {
+      expect(config.headers?.['X-Device-Id']).toBeUndefined()
       return [200, {}]
     })
 

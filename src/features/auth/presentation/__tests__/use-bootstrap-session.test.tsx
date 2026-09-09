@@ -30,7 +30,9 @@ async function mount(container: Partial<Container>): Promise<void> {
   await render(
     <ContainerProvider
       config={CONFIG}
-      value={{ loadPreferences: SIN_PREFERENCIAS, ...container } as Container}
+      value={
+        { deviceIdReady: Promise.resolve(), loadPreferences: SIN_PREFERENCIAS, ...container } as Container
+      }
     >
       <Probe />
     </ContainerProvider>,

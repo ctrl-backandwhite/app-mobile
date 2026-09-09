@@ -69,8 +69,6 @@ export function AddCardScreen(): ReactElement {
   return (
     <Screen>
       <View className="gap-4 pb-6">
-        <Text className="text-[20px] font-medium text-base-content">Nueva tarjeta</Text>
-
         {config.isLoading ? (
           <Text className="text-[13px] text-base-content opacity-70">
             Preparando el formulario de pago…

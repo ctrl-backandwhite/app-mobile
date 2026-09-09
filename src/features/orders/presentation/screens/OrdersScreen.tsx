@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { ReactElement } from 'react'
-import { FlatList, Text, View } from 'react-native'
+import { FlatList, Text } from 'react-native'
 
 import { Screen } from '@ds/components'
 import { EmptyState } from '@features/catalog/presentation/components'
@@ -77,11 +77,6 @@ export function OrdersScreen(): ReactElement {
         contentContainerClassName="gap-3 p-5"
         showsVerticalScrollIndicator={false}
         renderItem={({ item }): ReactElement => <OrderCard order={item} onPress={openOrder} />}
-        ListHeaderComponent={
-          <View className="pb-1">
-            <Text className="font-medium text-[18px] text-base-content">Mis pedidos</Text>
-          </View>
-        }
       />
     </Screen>
   )

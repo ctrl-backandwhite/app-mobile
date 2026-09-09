@@ -77,6 +77,9 @@ export const orderDetailDto = z.object({
   currency: z.string().default(''),
   subtotalFormatted: optionalString,
   shippingFormatted: optionalString,
+  // El derecho de aduana, APARTE del porte. En la base viven sumados en `shipping_cents`,
+  // y enseñarlos juntos aquí contradecía el resumen del pago, que sí los separa.
+  customsDutyFormatted: optionalString,
   taxFormatted: optionalString,
   totalFormatted: optionalString,
   discountFormatted: optionalString,

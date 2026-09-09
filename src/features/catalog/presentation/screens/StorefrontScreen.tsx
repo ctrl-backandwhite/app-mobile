@@ -5,6 +5,7 @@ import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
 import { Screen } from '@ds/components'
+import { homeSectionTitle } from '@features/catalog/domain/entities/home'
 import { ProductSummary } from '@features/catalog/domain/entities/product'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 
@@ -13,9 +14,9 @@ import { CategoryChips, EmptyState, ProductCardSkeleton, SectionRow } from '../c
 /**
  * Portada del catálogo.
  *
- * Las secciones las compone el backend —con sus títulos ya traducidos—, así que la pantalla no
- * decide qué mostrar ni en qué orden: solo pinta lo que llega. Añadir una sección nueva es un cambio
- * de servidor, sin publicar versión de la app.
+ * Las secciones las compone el backend, así que la pantalla no decide qué mostrar ni en qué orden:
+ * solo pinta lo que llega. Añadir una sección nueva es un cambio de servidor, sin publicar versión
+ * de la app. El TÍTULO sí lo pone la aplicación: el que manda el servidor viene en inglés.
  */
 export function StorefrontScreen(): ReactElement {
   const { loadHome } = useContainer()
@@ -95,7 +96,7 @@ export function StorefrontScreen(): ReactElement {
           data.sections.map((section) => (
             <View key={section.code} className="mt-6">
               <SectionRow
-                title={section.title}
+                title={homeSectionTitle(section)}
                 products={[...section.items]}
                 onSelect={openProduct}
                 onSeeAll={() => router.push('/(app)/(tabs)/catalog')}

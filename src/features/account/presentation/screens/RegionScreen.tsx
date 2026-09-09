@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 
 import { useContainer } from '@composition/container.provider'
 import { Card, Screen } from '@ds/components'
+import { currencyName } from '@features/account/domain/entities/currency-names'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 
 /**
@@ -88,7 +89,7 @@ export function RegionScreen(): ReactElement {
                 key={divisa.code}
                 testID={`divisa-${divisa.code}`}
                 emoji={divisa.flag}
-                titulo={`${divisa.code} · ${divisa.name}`}
+                titulo={`${divisa.code} · ${currencyName(divisa.code, divisa.name)}`}
                 elegido={divisa.code === currency}
                 onPress={() => eligeDivisa(divisa.code)}
               />

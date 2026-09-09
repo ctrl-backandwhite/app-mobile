@@ -45,6 +45,8 @@ export interface OrderDetail {
   readonly currency: string
   readonly subtotalFormatted?: string
   readonly shippingFormatted?: string
+  /** El derecho de aduana, aparte del porte: al pagar se ven separados y aquí también. */
+  readonly customsDutyFormatted?: string
   readonly taxFormatted?: string
   readonly totalFormatted?: string
   /** Descuento de referido del comprador. El total ya lo tiene restado. */

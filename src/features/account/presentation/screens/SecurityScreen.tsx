@@ -10,6 +10,15 @@ import { checkPassword } from '@features/auth/domain/policies/password-policy'
 import { PasswordRequirements } from '@features/auth/presentation/components/PasswordRequirements'
 
 /**
+ * Cuántas sesiones se pintan de entrada.
+ *
+ * <p>No es un adorno: una cuenta con meses de uso acumula CIENTOS de filas, y pintarlas todas dejaba
+ * «Eliminar mi cuenta» a veinte arrastres de distancia —una opción que las tiendas exigen que sea
+ * fácil de encontrar—. No se esconde ninguna: las demás están a un toque.
+ */
+const SESIONES_VISIBLES = 8
+
+/**
  * Seguridad de la cuenta: la contraseña y quién está dentro.
  *
  * <p>Las dos cosas viven juntas porque se usan juntas. Quien sospecha que alguien ha entrado en su
@@ -25,6 +34,7 @@ export function SecurityScreen(): ReactElement {
   const [repetida, setRepetida] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [hecho, setHecho] = useState(false)
+  const [todasLasSesiones, setTodasLasSesiones] = useState(false)
 
   const comprobacion = checkPassword(nueva)
   const noCoincide = repetida.length > 0 && repetida !== nueva
@@ -66,6 +76,9 @@ export function SecurityScreen(): ReactElement {
     // cerrada dejaría a alguien tranquilo con una sesión ajena todavía abierta.
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['sessions'] }),
   })
+
+  const abiertas: readonly ActiveSession[] = sesiones.data ?? []
+  const ocultas = Math.max(abiertas.length - SESIONES_VISIBLES, 0)
 
   return (
     <Screen padded={false}>
@@ -111,27 +124,6 @@ export function SecurityScreen(): ReactElement {
         </Card>
 
         <Card>
-          <Text className="mb-1 font-medium text-[15px] text-base-content">Sesiones abiertas</Text>
-          <Text className="mb-3 text-[12px] text-base-content opacity-60">
-            Si no reconoces alguna, ciérrala y cambia la contraseña.
-          </Text>
-
-          {sesiones.isLoading ? <ActivityIndicator testID="cargando-sesiones" /> : null}
-          {sesiones.isError ? (
-            <Alert variant="error" message="No se han podido cargar tus sesiones." />
-          ) : null}
-
-          {(sesiones.data ?? []).map((sesion) => (
-            <Sesion
-              key={sesion.id}
-              sesion={sesion}
-              cerrando={cierre.isPending && cierre.variables === sesion.id}
-              onCerrar={() => cierre.mutate(sesion.id)}
-            />
-          ))}
-        </Card>
-
-        <Card>
           <Text className="mb-1 font-medium text-[15px] text-base-content">Eliminar mi cuenta</Text>
           <Text className="mb-3 text-[12px] text-base-content opacity-60">
             Se borran tus datos personales y no se puede deshacer.
@@ -143,6 +135,40 @@ export function SecurityScreen(): ReactElement {
             onPress={() => router.push('/settings/delete-account')}
           />
         </Card>
+        <Card>
+          <Text className="mb-1 font-medium text-[15px] text-base-content">Sesiones abiertas</Text>
+          <Text className="mb-3 text-[12px] text-base-content opacity-60">
+            Si no reconoces alguna, ciérrala y cambia la contraseña.
+          </Text>
+
+          {sesiones.isLoading ? <ActivityIndicator testID="cargando-sesiones" /> : null}
+          {sesiones.isError ? (
+            <Alert variant="error" message="No se han podido cargar tus sesiones." />
+          ) : null}
+
+          {(todasLasSesiones ? abiertas : abiertas.slice(0, SESIONES_VISIBLES)).map((sesion) => (
+            <Sesion
+              key={sesion.id}
+              sesion={sesion}
+              cerrando={cierre.isPending && cierre.variables === sesion.id}
+              onCerrar={() => cierre.mutate(sesion.id)}
+            />
+          ))}
+
+          {!todasLasSesiones && ocultas > 0 ? (
+            <Pressable
+              testID="ver-todas-las-sesiones"
+              accessibilityRole="button"
+              onPress={() => setTodasLasSesiones(true)}
+              className="min-h-11 justify-center"
+            >
+              <Text className="text-[13px] text-primary">
+                Ver las {ocultas} sesiones restantes
+              </Text>
+            </Pressable>
+          ) : null}
+        </Card>
+
       </ScrollView>
     </Screen>
   )
