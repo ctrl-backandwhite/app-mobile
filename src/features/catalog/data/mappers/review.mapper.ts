@@ -1,3 +1,4 @@
+import { text } from '@core/data/nullable'
 import { Page } from '@features/catalog/domain/entities/page'
 import { Review } from '@features/catalog/domain/entities/review'
 
@@ -7,10 +8,10 @@ export function toReview(dto: ReviewDto): Review {
   return {
     id: dto.id,
     rating: dto.rating,
-    title: dto.title,
-    body: dto.body,
-    authorName: dto.authorName,
-    createdAt: dto.createdAt,
+    title: text(dto.title),
+    body: text(dto.body),
+    authorName: text(dto.authorName),
+    createdAt: text(dto.createdAt),
   }
 }
 

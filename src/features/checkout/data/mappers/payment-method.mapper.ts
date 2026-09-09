@@ -3,7 +3,7 @@ import { SavedCardCharge } from '@features/checkout/domain/ports/payment-methods
 
 import { PaymentMethodDto, SavedCardChargeDto } from '../dto/checkout.dto'
 
-import { num, text } from './nullable'
+import { num, text } from '@core/data/nullable'
 
 const KNOWN_TYPES = ['CARD', 'PAYPAL'] as const
 

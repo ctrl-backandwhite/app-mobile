@@ -1,5 +1,15 @@
 import { z } from 'zod'
 
+/*
+ * LO QUE FALTA VIAJA DE DOS FORMAS y hay que admitir las dos: el backend a veces omite el campo y a
+ * veces lo manda como `null` explícito. `optional()` acepta lo primero pero NO lo segundo, y con un
+ * solo nulo la validación entera se cae: la portada de la aplicación decía «No se ha podido cargar el
+ * catálogo» porque un producto sin rebaja llegaba con `originalFormatted: null`.
+ *
+ * Por eso `nullish()` en todo lo que el servidor puede dejar vacío. Los mapeadores traducen ese nulo
+ * a ausencia, que es lo único que entiende el dominio.
+ */
+
 /**
  * Contratos de la compra, validados en la frontera.
  *
@@ -14,14 +24,14 @@ import { z } from 'zod'
  */
 export const addressDto = z.object({
   id: z.string(),
-  label: z.string().nullable().optional(),
+  label: z.string().nullish(),
   fullName: z.string().default(''),
-  phone: z.string().nullable().optional(),
+  phone: z.string().nullish(),
   line1: z.string().default(''),
-  line2: z.string().nullable().optional(),
+  line2: z.string().nullish(),
   city: z.string().default(''),
-  state: z.string().nullable().optional(),
-  postalCode: z.string().nullable().optional(),
+  state: z.string().nullish(),
+  postalCode: z.string().nullish(),
   country: z.string().default(''),
   // El backend la llama `default`, que en JavaScript no es palabra reservada como clave.
   default: z.boolean().default(false),
@@ -31,28 +41,28 @@ export const addressListDto = z.array(addressDto)
 
 export const shippingQuoteDto = z.object({
   supported: z.boolean().default(false),
-  countryCode: z.string().nullable().optional(),
-  carrier: z.string().nullable().optional(),
-  serviceName: z.string().nullable().optional(),
+  countryCode: z.string().nullish(),
+  carrier: z.string().nullish(),
+  serviceName: z.string().nullish(),
   etaMinDays: z.number().default(0),
   etaMaxDays: z.number().default(0),
   taxRateBps: z.number().default(0),
   subtotalUsdCents: z.number().default(0),
   customsHandlingUsdCents: z.number().default(0),
   discountCents: z.number().default(0),
-  subtotalFormatted: z.string().nullable().optional(),
-  shippingFormatted: z.string().nullable().optional(),
-  shippingBaseFormatted: z.string().nullable().optional(),
-  customsHandlingFormatted: z.string().nullable().optional(),
-  taxFormatted: z.string().nullable().optional(),
-  totalFormatted: z.string().nullable().optional(),
-  discountFormatted: z.string().nullable().optional(),
+  subtotalFormatted: z.string().nullish(),
+  shippingFormatted: z.string().nullish(),
+  shippingBaseFormatted: z.string().nullish(),
+  customsHandlingFormatted: z.string().nullish(),
+  taxFormatted: z.string().nullish(),
+  totalFormatted: z.string().nullish(),
+  discountFormatted: z.string().nullish(),
   customsThresholdExceeded: z.boolean().default(false),
   customsBlocked: z.boolean().default(false),
-  customsLimit: z.string().nullable().optional(),
-  taxMode: z.string().nullable().optional(),
-  couponCode: z.string().nullable().optional(),
-  couponError: z.string().nullable().optional(),
+  customsLimit: z.string().nullish(),
+  taxMode: z.string().nullish(),
+  couponCode: z.string().nullish(),
+  couponError: z.string().nullish(),
 })
 
 export const regionListDto = z.array(z.object({ code: z.string(), name: z.string().default('') }))
@@ -68,22 +78,22 @@ export const placedOrderDto = z.object({
   id: z.string(),
   orderNumber: z.string().default(''),
   status: z.string().default(''),
-  paymentMethod: z.string().nullable().optional(),
-  totalFormatted: z.string().nullable().optional(),
-  approveUrl: z.string().nullable().optional(),
-  approvalUrl: z.string().nullable().optional(),
+  paymentMethod: z.string().nullish(),
+  totalFormatted: z.string().nullish(),
+  approveUrl: z.string().nullish(),
+  approvalUrl: z.string().nullish(),
 })
 
 export const walletDto = z.object({
   availableUsdCents: z.number().default(0),
-  balanceFormatted: z.string().nullable().optional(),
+  balanceFormatted: z.string().nullish(),
   displayCurrency: z.string().default(''),
   status: z.string().default(''),
   // Lo retenido por operaciones en curso. Solo se enseña si de verdad hay algo retenido: un
   // «Retenido: 0,00 $» inquieta sin motivo, y hay monederos con una retención huérfana de los
   // primeros días de la plataforma.
-  holdUsdCents: z.number().nullable().optional(),
-  holdUsdFormatted: z.string().nullable().optional(),
+  holdUsdCents: z.number().nullish(),
+  holdUsdFormatted: z.string().nullish(),
 })
 
 /**
@@ -96,17 +106,17 @@ export const walletTransactionDto = z.object({
   kind: z.string().default(''),
   amountUsdCents: z.number().default(0),
   balanceAfterCents: z.number().default(0),
-  description: z.string().nullable().optional(),
+  description: z.string().nullish(),
   createdAt: z.string().default(''),
-  amountFormatted: z.string().nullable().optional(),
-  balanceAfterFormatted: z.string().nullable().optional(),
+  amountFormatted: z.string().nullish(),
+  balanceAfterFormatted: z.string().nullish(),
 })
 
 export const rechargeOptionsDto = z.object({
   currency: z.string().default(''),
   symbol: z.string().default(''),
   presets: z
-    .array(z.object({ amount: z.number(), formatted: z.string().nullable().optional() }))
+    .array(z.object({ amount: z.number(), formatted: z.string().nullish() }))
     .default([]),
 })
 
@@ -118,9 +128,9 @@ export const rechargeDto = z.object({
   paymentId: z.string(),
   status: z.string().default(''),
   amountUsdCents: z.number().default(0),
-  chargeFormatted: z.string().nullable().optional(),
-  clientSecret: z.string().nullable().optional(),
-  approveUrl: z.string().nullable().optional(),
+  chargeFormatted: z.string().nullish(),
+  clientSecret: z.string().nullish(),
+  approveUrl: z.string().nullish(),
 })
 
 export const walletTransactionPageDto = z.object({
@@ -139,11 +149,11 @@ export const walletTransactionPageDto = z.object({
 export const paymentMethodDto = z.object({
   id: z.string(),
   type: z.string().default(''),
-  brand: z.string().nullable().optional(),
-  last4: z.string().nullable().optional(),
-  expMonth: z.number().nullable().optional(),
-  expYear: z.number().nullable().optional(),
-  paypalEmail: z.string().nullable().optional(),
+  brand: z.string().nullish(),
+  last4: z.string().nullish(),
+  expMonth: z.number().nullish(),
+  expYear: z.number().nullish(),
+  paypalEmail: z.string().nullish(),
   isDefault: z.boolean().default(false),
 })
 
@@ -151,8 +161,8 @@ export const paymentMethodListDto = z.array(paymentMethodDto)
 
 export const savedCardChargeDto = z.object({
   status: z.string().default(''),
-  clientSecret: z.string().nullable().optional(),
-  paymentId: z.string().nullable().optional(),
+  clientSecret: z.string().nullish(),
+  paymentId: z.string().nullish(),
 })
 
 /**
@@ -162,7 +172,7 @@ export const savedCardChargeDto = z.object({
  * de tarjeta que después no va a poder guardar nada.
  */
 export const billingConfigDto = z.object({
-  publishableKey: z.string().nullable().optional(),
+  publishableKey: z.string().nullish(),
   enabled: z.boolean().default(false),
 })
 

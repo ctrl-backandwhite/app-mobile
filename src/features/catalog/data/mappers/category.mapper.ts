@@ -1,3 +1,4 @@
+import { num, text } from '@core/data/nullable'
 import { Category } from '@features/catalog/domain/entities/category'
 
 import { CategoryDto } from '../dto/catalog.dto'
@@ -13,8 +14,8 @@ export function toCategory(dto: CategoryDto): Category {
     name: dto.name,
     parentId: dto.parentId ?? undefined,
     position: dto.position,
-    icon: dto.icon,
-    directProductCount: dto.directProductCount,
+    icon: text(dto.icon),
+    directProductCount: num(dto.directProductCount),
     children: dto.children?.map(toCategory),
   }
 }

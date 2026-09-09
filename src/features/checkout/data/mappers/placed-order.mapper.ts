@@ -2,7 +2,7 @@ import { PlacedOrder } from '@features/checkout/domain/entities/placed-order'
 
 import { PlacedOrderDto } from '../dto/checkout.dto'
 
-import { text } from './nullable'
+import { text } from '@core/data/nullable'
 
 export function toPlacedOrder(dto: PlacedOrderDto): PlacedOrder {
   return {

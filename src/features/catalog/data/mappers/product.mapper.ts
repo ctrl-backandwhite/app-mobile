@@ -1,3 +1,4 @@
+import { num, text } from '@core/data/nullable'
 import { Page } from '@features/catalog/domain/entities/page'
 import { ProductSummary } from '@features/catalog/domain/entities/product'
 
@@ -13,15 +14,15 @@ export function toProductSummary(dto: ProductSummaryDto): ProductSummary {
     id: dto.id,
     slug: dto.slug,
     title: dto.title,
-    mainImage: dto.mainImage,
-    rating: dto.rating,
+    mainImage: text(dto.mainImage),
+    rating: num(dto.rating),
     monthlySales: dto.monthlySales,
-    trendScore: dto.trendScore,
+    trendScore: num(dto.trendScore),
     status: dto.status,
-    displayFormatted: dto.displayFormatted,
-    originalFormatted: dto.originalFormatted,
-    discountPercent: dto.discountPercent,
-    promotionName: dto.promotionName,
+    displayFormatted: text(dto.displayFormatted),
+    originalFormatted: text(dto.originalFormatted),
+    discountPercent: num(dto.discountPercent),
+    promotionName: text(dto.promotionName),
   }
 }
 

@@ -50,6 +50,41 @@ describe('HttpAuthRepository', () => {
     expect(result.ok && result.value.user.displayName).toBe('Ana')
   })
 
+  /**
+   * El backend expresa «no hay dato» de dos formas —omitiendo el campo o mandando `null`— y hasta
+   * ahora solo se admitía la primera. Con la segunda, entrar era IMPOSIBLE: un usuario sin teléfono ni
+   * avatar —la mayoría— llegaba con `phone: null`, la validación se caía y la pantalla decía «La
+   * respuesta del servidor no tiene el formato esperado», sin más pista.
+   *
+   * <p>Este es el cuerpo REAL que devuelve el backend, copiado de una respuesta suya.
+   */
+  it('entra con un usuario cuyos datos opcionales llegan como nulos', async () => {
+    const { client, mock } = makeClient()
+    mock.onPost('/auth/login').reply(200, {
+      ...LOGIN_OK,
+      user: {
+        ...LOGIN_OK.user,
+        phone: null,
+        avatarUrl: null,
+        lastName1: 'Pérez',
+        lastName2: null,
+        companyName: null,
+        country: 'ES',
+        language: 'es',
+        lastLogin: '2026-09-09T08:00:00Z',
+      },
+    })
+    const repository = new HttpAuthRepository(client, solver)
+
+    const result = await repository.signIn({ email: 'ana@nx036.com', password: 'Secreta1!' })
+
+    expect(result.ok).toBe(true)
+    // Y el nulo no se cuela hasta las pantallas: el dominio solo entiende «ausente».
+    expect(result.ok && result.value.user.avatarUrl).toBeUndefined()
+    expect(result.ok && result.value.user.companyName).toBeUndefined()
+    expect(result.ok && result.value.user.country).toBe('ES')
+  })
+
   it('envía el segundo factor cuando se aporta', async () => {
     const { client, mock } = makeClient()
     let body: Record<string, unknown> = {}

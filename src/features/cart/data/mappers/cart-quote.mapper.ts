@@ -1,3 +1,4 @@
+import { text } from '@core/data/nullable'
 import { CartQuote } from '@features/cart/domain/entities/cart-quote'
 
 import { CartQuoteDto } from '../dto/cart.dto'
@@ -9,9 +10,9 @@ export function toCartQuote(dto: CartQuoteDto): CartQuote {
     items: dto.items.map((item) => ({
       productId: item.productId,
       variantId: item.variantId ?? undefined,
-      unitFormatted: item.unitFormatted,
-      lineTotalFormatted: item.lineTotalFormatted,
+      unitFormatted: text(item.unitFormatted),
+      lineTotalFormatted: text(item.lineTotalFormatted),
     })),
-    subtotalFormatted: dto.subtotalFormatted,
+    subtotalFormatted: text(dto.subtotalFormatted),
   }
 }

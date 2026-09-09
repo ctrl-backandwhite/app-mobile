@@ -14,7 +14,7 @@ import {
   WalletTransactionPageDto,
 } from '../dto/checkout.dto'
 
-import { text } from './nullable'
+import { text } from '@core/data/nullable'
 
 export function toWalletBalance(dto: WalletDto): WalletBalance {
   return {

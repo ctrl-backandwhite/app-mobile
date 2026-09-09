@@ -2,7 +2,7 @@ import { ShippingQuote } from '@features/checkout/domain/entities/shipping'
 
 import { ShippingQuoteDto } from '../dto/checkout.dto'
 
-import { text } from './nullable'
+import { text } from '@core/data/nullable'
 
 export function toShippingQuote(dto: ShippingQuoteDto): ShippingQuote {
   return {

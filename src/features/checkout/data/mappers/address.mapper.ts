@@ -2,7 +2,7 @@ import { Address, NewAddress } from '@features/checkout/domain/entities/address'
 
 import { AddressDto } from '../dto/checkout.dto'
 
-import { text } from './nullable'
+import { text } from '@core/data/nullable'
 
 export function toAddress(dto: AddressDto): Address {
   return {

@@ -1,16 +1,26 @@
 import { z } from 'zod'
 
+/*
+ * LO QUE FALTA VIAJA DE DOS FORMAS y hay que admitir las dos: el backend a veces omite el campo y a
+ * veces lo manda como `null` explícito. `optional()` acepta lo primero pero NO lo segundo, y con un
+ * solo nulo la validación entera se cae: la portada de la aplicación decía «No se ha podido cargar el
+ * catálogo» porque un producto sin rebaja llegaba con `originalFormatted: null`.
+ *
+ * Por eso `nullish()` en todo lo que el servidor puede dejar vacío. Los mapeadores traducen ese nulo
+ * a ausencia, que es lo único que entiende el dominio.
+ */
+
 /**
  * Contrato de las respuestas de pedidos, validado en la frontera.
  *
- * Es deliberadamente TOLERANTE: lo que el backend puede omitir va como `.optional()`, lo que puede
+ * Es deliberadamente TOLERANTE: lo que el backend puede omitir va como `.nullish()`, lo que puede
  * llegar a `null` lleva además `.nullable()`, y las listas llevan `.default([])`. `z.object` descarta
  * los campos que no conoce, así que un campo nuevo en la API —o uno que solo interesa al panel de
  * administración— no rompe la aplicación instalada. Lo que sí rompe es que falte un campo
  * imprescindible, y ese fallo se quiere explícito: sale como error `CONTRACT` en la frontera y no
  * como un `undefined` en mitad de una pantalla.
  */
-const optionalString = z.string().nullable().optional()
+const optionalString = z.string().nullish()
 
 /**
  * Del pedido solo se recogen los importes YA formateados. `totalCents` también viaja, pero pintarlo
@@ -70,7 +80,7 @@ export const orderDetailDto = z.object({
   taxFormatted: optionalString,
   totalFormatted: optionalString,
   discountFormatted: optionalString,
-  shippingAddress: orderAddressDto.nullable().optional(),
+  shippingAddress: orderAddressDto.nullish(),
   notes: optionalString,
   trackingCarrier: optionalString,
   trackingNumber: optionalString,

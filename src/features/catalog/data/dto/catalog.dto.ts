@@ -1,9 +1,19 @@
 import { z } from 'zod'
 
+/*
+ * LO QUE FALTA VIAJA DE DOS FORMAS y hay que admitir las dos: el backend a veces omite el campo y a
+ * veces lo manda como `null` explícito. `optional()` acepta lo primero pero NO lo segundo, y con un
+ * solo nulo la validación entera se cae: la portada de la aplicación decía «No se ha podido cargar el
+ * catálogo» porque un producto sin rebaja llegaba con `originalFormatted: null`.
+ *
+ * Por eso `nullish()` en todo lo que el servidor puede dejar vacío. Los mapeadores traducen ese nulo
+ * a ausencia, que es lo único que entiende el dominio.
+ */
+
 /**
  * Contrato de las respuestas del catálogo, validado en la frontera.
  *
- * Es deliberadamente TOLERANTE: todo lo que el backend puede omitir va como `.optional()` y las
+ * Es deliberadamente TOLERANTE: todo lo que el backend puede omitir va como `.nullish()` y las
  * listas llevan `.default([])`. Además, `z.object` descarta los campos que no conoce, así que un
  * campo nuevo en la API —o uno que solo interesa al panel de administración— no rompe la
  * aplicación instalada. Lo que sí rompe es que falte un campo imprescindible, y ese fallo se quiere
@@ -13,15 +23,15 @@ export const productSummaryDto = z.object({
   id: z.string(),
   slug: z.string(),
   title: z.string(),
-  mainImage: z.string().optional(),
-  rating: z.number().optional(),
+  mainImage: z.string().nullish(),
+  rating: z.number().nullish(),
   monthlySales: z.number(),
-  trendScore: z.number().optional(),
+  trendScore: z.number().nullish(),
   status: z.string(),
-  displayFormatted: z.string().optional(),
-  originalFormatted: z.string().optional(),
-  discountPercent: z.number().optional(),
-  promotionName: z.string().optional(),
+  displayFormatted: z.string().nullish(),
+  originalFormatted: z.string().nullish(),
+  discountPercent: z.number().nullish(),
+  promotionName: z.string().nullish(),
 })
 
 export const productPageDto = z.object({
@@ -41,12 +51,12 @@ export const categoryDto = z.object({
   slug: z.string(),
   name: z.string(),
   // El backend manda `null` para los nodos raíz, no ausencia de campo.
-  parentId: z.string().nullable().optional(),
+  parentId: z.string().nullish(),
   position: z.number(),
-  icon: z.string().optional(),
-  directProductCount: z.number().optional(),
+  icon: z.string().nullish(),
+  directProductCount: z.number().nullish(),
   get children() {
-    return z.array(categoryDto).optional()
+    return z.array(categoryDto).nullish()
   },
 })
 
@@ -68,9 +78,9 @@ export const homeSectionsDto = z.object({
 export const productImageDto = z.object({
   id: z.string(),
   sourceUrl: z.string(),
-  cdnUrl: z.string().optional(),
+  cdnUrl: z.string().nullish(),
   position: z.number(),
-  role: z.string().optional(),
+  role: z.string().nullish(),
 })
 
 /**
@@ -79,70 +89,70 @@ export const productImageDto = z.object({
  */
 export const productVariantDto = z.object({
   id: z.string(),
-  sku: z.string().optional(),
-  title: z.string().optional(),
-  priceFormatted: z.string().optional(),
-  originalFormatted: z.string().optional(),
-  discountPercent: z.number().optional(),
+  sku: z.string().nullish(),
+  title: z.string().nullish(),
+  priceFormatted: z.string().nullish(),
+  originalFormatted: z.string().nullish(),
+  discountPercent: z.number().nullish(),
   stock: z.number().default(0),
-  imageUrl: z.string().optional(),
+  imageUrl: z.string().nullish(),
   options: z.record(z.string(), z.string()).default({}),
   active: z.boolean().default(true),
-  weightGrams: z.number().optional(),
-  lengthMm: z.number().optional(),
-  widthMm: z.number().optional(),
-  heightMm: z.number().optional(),
+  weightGrams: z.number().nullish(),
+  lengthMm: z.number().nullish(),
+  widthMm: z.number().nullish(),
+  heightMm: z.number().nullish(),
 })
 
 /** El sufijo `Zh` es el texto original del proveedor: sirve de reserva cuando falta la traducción. */
 export const variantOptionValueDto = z.object({
   id: z.string(),
-  value: z.string().optional(),
-  valueZh: z.string().optional(),
-  imageUrl: z.string().optional(),
-  imageSourceUrl: z.string().optional(),
+  value: z.string().nullish(),
+  valueZh: z.string().nullish(),
+  imageUrl: z.string().nullish(),
+  imageSourceUrl: z.string().nullish(),
   position: z.number().default(0),
 })
 
 export const variantOptionDto = z.object({
   id: z.string(),
-  name: z.string().optional(),
-  nameZh: z.string().optional(),
+  name: z.string().nullish(),
+  nameZh: z.string().nullish(),
   position: z.number().default(0),
   values: z.array(variantOptionValueDto).default([]),
 })
 
 export const priceTierDto = z.object({
   minQty: z.number(),
-  maxQty: z.number().optional(),
-  unitPriceFormatted: z.string().optional(),
+  maxQty: z.number().nullish(),
+  unitPriceFormatted: z.string().nullish(),
 })
 
 export const specificationDto = z.object({
   key: z.string(),
   value: z.string(),
-  position: z.number().optional(),
+  position: z.number().nullish(),
 })
 
 export const responsiblePersonDto = z.object({
   name: z.string(),
   addressLine: z.string(),
-  postalCode: z.string().optional(),
+  postalCode: z.string().nullish(),
   city: z.string(),
-  region: z.string().optional(),
+  region: z.string().nullish(),
   country: z.string(),
   email: z.string(),
-  phone: z.string().optional(),
+  phone: z.string().nullish(),
   roleLabel: z.string(),
 })
 
 export const complianceDto = z.object({
-  manufacturerName: z.string().optional(),
-  manufacturerAddress: z.string().optional(),
-  manufacturerEmail: z.string().optional(),
+  manufacturerName: z.string().nullish(),
+  manufacturerAddress: z.string().nullish(),
+  manufacturerEmail: z.string().nullish(),
   manufacturerComplete: z.boolean().default(false),
   safetyWarnings: z.array(z.string()).default([]),
-  responsiblePerson: responsiblePersonDto.optional(),
+  responsiblePerson: responsiblePersonDto.nullish(),
 })
 
 /**
@@ -154,29 +164,29 @@ export const complianceDto = z.object({
  * anunciar.
  */
 export const productDetailDto = productSummaryDto.extend({
-  description: z.string().optional(),
-  brand: z.string().optional(),
+  description: z.string().nullish(),
+  brand: z.string().nullish(),
   moq: z.number().default(1),
   reviewCount: z.number().default(0),
-  videoUrl: z.string().optional(),
-  hasVideo: z.boolean().optional(),
+  videoUrl: z.string().nullish(),
+  hasVideo: z.boolean().nullish(),
   images: z.array(productImageDto).default([]),
   variants: z.array(productVariantDto).default([]),
   variantOptions: z.array(variantOptionDto).default([]),
   priceTiers: z.array(priceTierDto).default([]),
-  specifications: z.array(specificationDto).optional(),
-  attributes: z.record(z.string(), z.string()).optional(),
-  tags: z.array(z.string()).optional(),
-  compliance: complianceDto.optional(),
+  specifications: z.array(specificationDto).nullish(),
+  attributes: z.record(z.string(), z.string()).nullish(),
+  tags: z.array(z.string()).nullish(),
+  compliance: complianceDto.nullish(),
 })
 
 export const reviewDto = z.object({
   id: z.string(),
   rating: z.number(),
-  title: z.string().optional(),
-  body: z.string().optional(),
-  authorName: z.string().optional(),
-  createdAt: z.string().optional(),
+  title: z.string().nullish(),
+  body: z.string().nullish(),
+  authorName: z.string().nullish(),
+  createdAt: z.string().nullish(),
 })
 
 /** La respuesta trae además el reparto por estrellas y la media; la ficha aún no los pinta. */
