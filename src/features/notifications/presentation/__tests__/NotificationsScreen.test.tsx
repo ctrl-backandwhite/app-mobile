@@ -249,9 +249,10 @@ describe('NotificationsScreen', () => {
       fireEvent(screen.getByTestId('avisos-en-el-movil'), 'valueChange', true)
     })
 
-    expect(
-      await screen.findByText('No se han podido activar los avisos en este dispositivo.'),
-    ).toBeTruthy()
+    // El aviso dice QUÉ mirar —el permiso del teléfono— en vez de invitar a volver a pulsar: el caso
+    // de uso colapsa todas las causas en «no» y aquí no se sabe cuál fue.
+    expect(await screen.findByText(/permiso para enviar avisos/)).toBeTruthy()
+    expect(await screen.findByText(/siguen apareciendo aquí/)).toBeTruthy()
     expect(screen.getByTestId('avisos-en-el-movil').props.value).toBe(false)
   })
 })

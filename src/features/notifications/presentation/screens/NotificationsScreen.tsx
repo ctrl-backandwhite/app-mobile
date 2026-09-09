@@ -95,8 +95,18 @@ export function NotificationsScreen(): ReactElement {
     },
     onSuccess: (activado) => {
       setAvisosEnElMovil(activado)
-      // Que no se active es un caso normal: permiso denegado o un teléfono que no puede recibirlos.
-      setError(activado ? null : 'No se han podido activar los avisos en este dispositivo.')
+      // Que no se active es un caso NORMAL —permiso denegado, o un teléfono sin los servicios de
+      // mensajería, como un emulador—, así que el aviso dice qué mirar en vez de invitar a volver a
+      // pulsar: el caso de uso colapsa todas las causas en «no» a propósito y aquí no se sabe cuál
+      // fue. «No se han podido activar» a secas se leía como un fallo pasajero que se arregla
+      // insistiendo, y no lo es.
+      setError(
+        activado
+          ? null
+          : 'No hemos podido activarlos. Revisa que la aplicación tenga permiso para enviar avisos ' +
+              'en los ajustes del teléfono; hay dispositivos que no pueden recibirlos. Los avisos ' +
+              'siguen apareciendo aquí de todas formas.',
+      )
     },
     onError: falla,
   })
