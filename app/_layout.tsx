@@ -18,6 +18,7 @@ import { ContainerProvider } from '@composition/container.provider'
 import { getAppConfig } from '@core/config/env'
 import { startCapturingIncomingLinks } from '@core/linking/incoming-link'
 import { useBootstrapSession } from '@features/auth/presentation/hooks/use-bootstrap-session'
+import { useRefetchOnRegionChange } from '@features/auth/presentation/hooks/use-refetch-on-region-change'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 import { CardPaymentProvider } from '@features/checkout/presentation/components'
 import { useMergeGuestCart } from '@features/cart/presentation/hooks/use-merge-guest-cart'
@@ -40,6 +41,7 @@ startCapturingIncomingLinks()
  */
 function SessionGate({ fontsReady }: { fontsReady: boolean }): ReactElement | null {
   useBootstrapSession()
+  useRefetchOnRegionChange()
   useLoadFavorites()
   useMergeGuestCart()
   useNotificationTaps()
