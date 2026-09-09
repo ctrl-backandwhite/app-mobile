@@ -109,10 +109,17 @@ export const productVariantDto = z.object({
   heightMm: z.number().nullish(),
 })
 
-/** El sufijo `Zh` es el texto original del proveedor: sirve de reserva cuando falta la traducción. */
+/**
+ * El sufijo `Zh` es el texto original del proveedor: sirve de reserva cuando falta la traducción.
+ *
+ * <p>`valueLocalized` es la traducción al idioma pedido y es lo PRIMERO que hay que mirar: desde el
+ * 25-ago-2026 el backend traduce también las opciones de la variante, y `value` viene vacío en las
+ * fichas cargadas desde entonces. Sin este campo el rótulo cae al chino.
+ */
 export const variantOptionValueDto = z.object({
   id: z.string(),
   value: z.string().nullish(),
+  valueLocalized: z.string().nullish(),
   valueZh: z.string().nullish(),
   imageUrl: z.string().nullish(),
   imageSourceUrl: z.string().nullish(),

@@ -383,6 +383,33 @@ describe('HttpCatalogRepository', () => {
     expect(result.ok && result.value.tags).toEqual(['verano'])
   })
 
+  /**
+   * En las fichas cargadas desde el 25-ago-2026 el backend traduce las opciones y deja `value`
+   * vacío. Sin mirar `valueLocalized` el rótulo salía en chino, y como ese mismo texto es la clave
+   * con la que la elección casa contra `variante.options` —que sí viene traducido—, no encontraba
+   * NINGUNA variante: se llegaba a añadir a la cesta un color sin existencia y sin variante.
+   */
+  it('prefiere la traducción del valor sobre el texto crudo y sobre el chino', async () => {
+    const { client, mock } = makeClient()
+    mock.onGet('/catalog/products/camiseta-basica').reply(200, {
+      ...DETAIL_OK,
+      variantOptions: [
+        {
+          id: 'o-1',
+          nameZh: '颜色',
+          name: 'Color',
+          position: 0,
+          values: [{ id: 'ov-1', valueZh: '黑色', value: null, valueLocalized: 'Negro', position: 0 }],
+        },
+      ],
+    })
+    const repository = new HttpCatalogRepository(client)
+
+    const result = await repository.productBySlug('camiseta-basica', 'es')
+
+    expect(result.ok && result.value.variantOptions[0]?.values[0]?.value).toBe('Negro')
+  })
+
   it('cae al texto del proveedor cuando el eje no está traducido', async () => {
     const { client, mock } = makeClient()
     mock.onGet('/catalog/products/camiseta-basica').reply(200, {

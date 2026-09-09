@@ -207,6 +207,39 @@ export function isSelectionComplete(detail: ProductDetail, selection: VariantSel
   })
 }
 
+/**
+ * Si lo elegido NO se corresponde con ninguna variante que se pueda comprar.
+ *
+ * <p>Un eje puede ofrecer valores que ya no tienen variante activa detrás —el proveedor retira un
+ * color y el eje se queda con él—, y elegir uno de esos dejaba el botón activo: la línea se guardaba
+ * SIN variante y el pedido salía sin saber qué color se había comprado. Con esto se bloquea y se
+ * dice por qué.
+ *
+ * <p>Solo aplica cuando hay algo que elegir: un producto sin ejes no tiene variante que casar y
+ * tiene que seguir siendo comprable.
+ */
+export function isSelectionUnavailable(
+  detail: ProductDetail,
+  selection: VariantSelection,
+): boolean {
+  const choosable = detail.variantOptions.some((option) => option.values.length > 0)
+  if (!choosable || !isSelectionComplete(detail, selection)) return false
+  return variantFor(detail, selection) === undefined
+}
+
+/**
+ * Cómo se nombra la variante elegida fuera de la ficha: «Blanco / L», por ejemplo.
+ *
+ * <p>Se compone de sus opciones, NUNCA de `variant.title`: el backend rellena ese campo con el
+ * título del producto, así que la cesta enseñaba el nombre del artículo por segunda vez y no decía
+ * en ningún sitio qué color se había comprado.
+ */
+export function variantLabelOf(variant: ProductVariant | undefined): string | undefined {
+  if (!variant) return undefined
+  const parts = Object.values(variant.options).filter((value) => value.trim().length > 0)
+  return parts.length > 0 ? parts.join(' / ') : undefined
+}
+
 /** Primera variante activa que encaje con la elección y además tenga foto propia. */
 function selectedImage(detail: ProductDetail, selection: VariantSelection): ProductVariant | undefined {
   const chosen = chosenValues(selection)

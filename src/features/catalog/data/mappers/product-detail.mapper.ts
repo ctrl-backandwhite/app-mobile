@@ -17,8 +17,15 @@ import {
 import { toProductSummary } from './product.mapper'
 
 /** El texto del proveedor (en chino) es la reserva cuando el idioma pedido aún no está traducido. */
-function translated(value?: string, fallback?: string): string {
-  return value?.trim() || fallback?.trim() || ''
+/**
+ * El primer texto con contenido, por orden de preferencia.
+ *
+ * <p>El rótulo que se elige es a la vez la CLAVE con la que la elección casa contra
+ * `variante.options`, que el backend sirve YA TRADUCIDO. Quedarse con el chino no solo se lee mal:
+ * deja de encontrar la variante, y entonces se puede añadir a la cesta un color que no existe.
+ */
+function translated(...candidates: readonly (string | undefined)[]): string {
+  return candidates.find((candidate) => candidate?.trim())?.trim() ?? ''
 }
 
 function toImage(dto: ProductImageDto): ProductImage {
@@ -59,7 +66,7 @@ function toVariantOption(dto: VariantOptionDto): VariantOption {
     position: dto.position,
     values: dto.values.map((value) => ({
       id: value.id,
-      value: translated(text(value.value), text(value.valueZh)),
+      value: translated(text(value.valueLocalized), text(value.value), text(value.valueZh)),
       imageUrl: text(value.imageUrl),
       imageSourceUrl: text(value.imageSourceUrl),
       position: value.position,

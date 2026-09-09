@@ -9,8 +9,10 @@ import { useSessionStore } from '@features/auth/presentation/state/session.store
 import {
   imagesFor,
   isSelectionComplete,
+  isSelectionUnavailable,
   priceTierFor,
   variantFor,
+  variantLabelOf,
   VariantSelection,
 } from '@features/catalog/domain/entities/product-detail'
 import { CartLine } from '@features/cart/domain/entities/cart-line'
@@ -110,6 +112,9 @@ export function ProductDetailScreen(): ReactElement {
   const price = variant?.priceFormatted ?? product.displayFormatted
   const previousPrice = variant ? variant.originalFormatted : product.originalFormatted
   const needsChoice = product.variantOptions.length > 0 && !isSelectionComplete(product, selection)
+  // Elegido todo y aun así no hay variante que comprar: el eje ofrece un valor que ya no tiene
+  // existencia activa detrás. Antes el botón seguía activo y la línea se guardaba SIN variante.
+  const unavailable = isSelectionUnavailable(product, selection)
 
   return (
     <Screen padded={false}>
@@ -163,9 +168,16 @@ export function ProductDetailScreen(): ReactElement {
             <Alert variant="info" message="Elige todas las opciones para continuar." />
           ) : null}
 
+          {unavailable ? (
+            <Alert
+              variant="warning"
+              message="Esa combinación no está disponible. Prueba con otra opción."
+            />
+          ) : null}
+
           <Button
             title={added ? 'Añadido a la cesta' : 'Añadir a la cesta'}
-            disabled={needsChoice}
+            disabled={needsChoice || unavailable}
             onPress={() => {
               // La línea guarda lo justo para pintarse: el importe lo recalcula el backend en el
               // presupuesto. Guardar aquí el precio del momento haría que la cesta enseñara un
@@ -176,7 +188,7 @@ export function ProductDetailScreen(): ReactElement {
                 slug: product.slug,
                 title: product.title,
                 image: images[0]?.url ?? product.mainImage,
-                variantLabel: variant?.title,
+                variantLabel: variantLabelOf(variant),
                 sku: variant?.sku,
                 quantity,
                 moq: product.moq,

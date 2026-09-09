@@ -1,4 +1,11 @@
-import { imagesFor, isSelectionComplete, priceTierFor, variantFor } from '../entities/product-detail'
+import {
+  imagesFor,
+  isSelectionComplete,
+  isSelectionUnavailable,
+  priceTierFor,
+  variantFor,
+  variantLabelOf,
+} from '../entities/product-detail'
 import {
   anImage,
   aProductDetail,
@@ -213,5 +220,72 @@ describe('priceTierFor', () => {
 
   it('no hay tramo cuando el producto no tiene ninguno', () => {
     expect(priceTierFor(aProductDetail(), 10)).toBeUndefined()
+  })
+})
+
+/**
+ * Un eje puede ofrecer un valor que ya no tiene variante activa detrás. Antes se podía añadir a la
+ * cesta: la línea se guardaba SIN variante y el pedido salía sin saber qué se había comprado.
+ */
+describe('isSelectionUnavailable', () => {
+  const CON_DOS_COLORES = aProductDetail({
+    variantOptions: [
+      aVariantOption({
+        values: [
+          { id: 'ov-1', value: 'Negro', position: 0 },
+          { id: 'ov-2', value: 'Blanco', position: 1 },
+        ],
+      }),
+    ],
+    variants: [aVariant({ options: { Color: 'Blanco' } })],
+  })
+
+  it('un color sin variante activa detrás no se puede comprar', () => {
+    expect(isSelectionUnavailable(CON_DOS_COLORES, { Color: 'Negro' })).toBe(true)
+  })
+
+  it('el color que sí tiene variante se puede comprar', () => {
+    expect(isSelectionUnavailable(CON_DOS_COLORES, { Color: 'Blanco' })).toBe(false)
+  })
+
+  it('sin haber elegido todavía no se bloquea nada', () => {
+    expect(isSelectionUnavailable(CON_DOS_COLORES, {})).toBe(false)
+  })
+
+  it('una variante desactivada cuenta como no disponible', () => {
+    const retirado = aProductDetail({
+      variants: [aVariant({ options: { Color: 'Rojo' }, active: false })],
+    })
+
+    expect(isSelectionUnavailable(retirado, { Color: 'Rojo' })).toBe(true)
+  })
+
+  it('un producto sin ejes que elegir sigue siendo comprable', () => {
+    const sinEjes = aProductDetail({ variantOptions: [], variants: [] })
+
+    expect(isSelectionUnavailable(sinEjes, {})).toBe(false)
+  })
+})
+
+/**
+ * `variant.title` viene relleno con el TÍTULO DEL PRODUCTO, así que usarlo dejaba la cesta sin
+ * decir en ningún sitio qué color se había comprado.
+ */
+describe('variantLabelOf', () => {
+  it('nombra la variante por sus opciones, no por su título', () => {
+    const variante = aVariant({
+      title: 'Tanga de encaje calado con tiro bajo para mujer',
+      options: { Color: 'Blanco', Talla: 'L' },
+    })
+
+    expect(variantLabelOf(variante)).toBe('Blanco / L')
+  })
+
+  it('sin variante no hay etiqueta', () => {
+    expect(variantLabelOf(undefined)).toBeUndefined()
+  })
+
+  it('una variante sin opciones tampoco tiene etiqueta que enseñar', () => {
+    expect(variantLabelOf(aVariant({ options: {} }))).toBeUndefined()
   })
 })
