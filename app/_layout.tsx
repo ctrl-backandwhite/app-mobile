@@ -22,6 +22,7 @@ import { useSessionStore } from '@features/auth/presentation/state/session.store
 import { CardPaymentProvider } from '@features/checkout/presentation/components'
 import { useMergeGuestCart } from '@features/cart/presentation/hooks/use-merge-guest-cart'
 import { useLoadFavorites } from '@features/favorites/presentation/hooks/use-load-favorites'
+import { useNotificationTaps } from '@features/notifications/presentation/hooks/use-notification-taps'
 
 // Retener el arranque evita el salto tipográfico: sin esto la primera pintura sale con la fuente
 // del sistema y se recompone al entrar Roboto.
@@ -41,6 +42,7 @@ function SessionGate({ fontsReady }: { fontsReady: boolean }): ReactElement | nu
   useBootstrapSession()
   useLoadFavorites()
   useMergeGuestCart()
+  useNotificationTaps()
   const status = useSessionStore((state) => state.status)
   const ready = fontsReady && status !== 'loading'
 
