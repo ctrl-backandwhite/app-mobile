@@ -103,8 +103,6 @@ describe('RegisterScreen', () => {
 
     await fireEvent.changeText(screen.getByLabelText('Correo electrónico'), 'ana@nx036.com')
     await fireEvent.changeText(screen.getByLabelText('Contraseña'), STRONG)
-    await fireEvent.changeText(screen.getByLabelText('País'), '')
-    await fireEvent.changeText(screen.getByLabelText('Idioma'), '')
     await fireEvent.press(screen.getByLabelText(TERMS))
     await fireEvent.press(screen.getByText('Crear cuenta'))
 
@@ -113,11 +111,31 @@ describe('RegisterScreen', () => {
         expect.objectContaining({
           firstName: undefined,
           companyName: undefined,
-          country: undefined,
-          language: undefined,
           marketingOptIn: false,
         }),
       ),
+    )
+  })
+
+  it('manda el país que se elige de la lista', async () => {
+    const register = registerThatReturns(ok('u-nuevo'))
+    const listCountries = {
+      execute: jest.fn().mockResolvedValue(ok([{ code: 'PT', name: 'Portugal' }])),
+    }
+    await renderWithContainer(<RegisterScreen />, {
+      register: register as never,
+      listCountries: listCountries as never,
+    })
+
+    await fireEvent.changeText(screen.getByLabelText('Correo electrónico'), 'ana@nx036.com')
+    await fireEvent.changeText(screen.getByLabelText('Contraseña'), STRONG)
+    await fireEvent.press(screen.getByTestId('pais-de-la-cuenta'))
+    await fireEvent.press(await screen.findByTestId('pais-PT'))
+    await fireEvent.press(screen.getByLabelText(TERMS))
+    await fireEvent.press(screen.getByText('Crear cuenta'))
+
+    await waitFor(() =>
+      expect(register.execute).toHaveBeenCalledWith(expect.objectContaining({ country: 'PT' })),
     )
   })
 

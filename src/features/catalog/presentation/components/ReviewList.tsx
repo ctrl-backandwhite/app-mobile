@@ -1,5 +1,7 @@
 import { ReactElement } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
+
+import { Text } from '@ds/components'
 
 import { Review } from '@features/catalog/domain/entities/review'
 
@@ -48,13 +50,13 @@ function dayOf(createdAt: string): string {
 export function ReviewList({ reviews, total }: Props): ReactElement {
   if (reviews.length === 0) {
     return (
-      <Text className="text-[13px] text-base-content opacity-70">Todavía no hay opiniones.</Text>
+      <Text variant="label" tone="muted">Todavía no hay opiniones.</Text>
     )
   }
 
   return (
     <View className="gap-3">
-      <Text className="text-[12px] text-base-content opacity-70">
+      <Text variant="caption" tone="muted">
         {total === 1 ? '1 opinión' : `${total} opiniones`}
       </Text>
 
@@ -67,20 +69,20 @@ export function ReviewList({ reviews, total }: Props): ReactElement {
           <View className="flex-row items-center gap-2">
             <Stars rating={review.rating} />
             {review.authorName ? (
-              <Text className="text-[12px] text-base-content opacity-70">{review.authorName}</Text>
+              <Text variant="caption" tone="muted">{review.authorName}</Text>
             ) : null}
             {review.createdAt ? (
-              <Text className="text-[12px] text-base-content opacity-50">
+              <Text variant="caption" tone="muted">
                 {dayOf(review.createdAt)}
               </Text>
             ) : null}
           </View>
 
           {review.title ? (
-            <Text className="font-medium text-[14px] text-base-content">{review.title}</Text>
+            <Text variant="label">{review.title}</Text>
           ) : null}
           {review.body ? (
-            <Text className="text-[13px] leading-[19px] text-base-content">{review.body}</Text>
+            <Text variant="label" className="leading-[19px]">{review.body}</Text>
           ) : null}
         </View>
       ))}

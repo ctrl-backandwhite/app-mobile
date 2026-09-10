@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { router } from 'expo-router'
-import { ReactElement, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Text, View } from 'react-native'
+import { ShieldCheck, TicketPercent } from 'lucide-react-native'
+import { ReactElement, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { Alert, Button, Screen, TextField } from '@ds/components'
+import { Alert, Button, Screen, Text, TextField } from '@ds/components'
 import { CartLine, totalUnits } from '@features/cart/domain/entities/cart-line'
 import { defaultAddress } from '@features/checkout/domain/entities/address'
 import {
@@ -240,96 +241,151 @@ export function CheckoutScreen(): ReactElement {
 
   return (
     <Screen>
-      <View className="gap-5 pb-6">
-        {items.length === 0 ? (
+      {items.length === 0 ? (
+        <View className="mt-4">
           <Alert variant="info" message="Tu cesta está vacía: no hay nada que tramitar." />
-        ) : (
-          <Text accessibilityLabel={`${units} unidades en la cesta`} className="text-[12px] text-base-content opacity-70">
-            {units === 1 ? '1 unidad' : `${units} unidades`}
-          </Text>
-        )}
+        </View>
+      ) : (
+        <Text
+          accessibilityLabel={`${units} unidades en la cesta`}
+          variant="label"
+          tone="muted"
+          className="mt-1"
+        >
+          {units === 1 ? '1 unidad' : `${units} unidades`}
+        </Text>
+      )}
 
-        <AddressPicker
-          addresses={addresses.data ?? []}
-          selectedId={addressId}
-          loading={addresses.isLoading}
-          onSelect={(chosen): void => setChosenAddressId(chosen.id)}
-          onAdd={(): void => router.push('/checkout/address')}
-        />
-
-        {addresses.isError ? (
-          <Alert variant="error" message="No se han podido cargar tus direcciones." />
-        ) : null}
-
-        <View className="gap-2">
-          <TextField
-            label="Cupón"
-            value={couponInput}
-            autoCapitalize="characters"
-            autoCorrect={false}
-            placeholder="Código de descuento"
-            onChangeText={(value): void => setCouponInput(value.toUpperCase())}
+      <View className="mt-6 gap-6 pb-6">
+        <Paso numero={1} titulo="Envío">
+          <AddressPicker
+            addresses={addresses.data ?? []}
+            selectedId={addressId}
+            loading={addresses.isLoading}
+            onSelect={(chosen): void => setChosenAddressId(chosen.id)}
+            onAdd={(): void => router.push('/checkout/address')}
           />
-          <Button
-            title="Aplicar cupón"
-            variant="outline"
-            disabled={!couponInput.trim() || couponInput.trim() === coupon}
-            onPress={(): void => setCoupon(couponInput.trim())}
+
+          {addresses.isError ? (
+            <Alert variant="error" message="No se han podido cargar tus direcciones." />
+          ) : null}
+        </Paso>
+
+        <Paso numero={2} titulo="Pago">
+          <PaymentPicker
+            methods={methods.data ?? []}
+            selection={payment}
+            wallet={wallet.data}
+            walletEnough={walletEnough}
+            loading={methods.isLoading}
+            onSelect={setChosenPayment}
+            onAddCard={(): void => router.push('/checkout/add-card')}
           />
+        </Paso>
+
+        <Paso numero={3} titulo="Resumen">
+          {/* El cupón va junto al total y no al principio: solo tiene sentido cuando ya se sabe
+              sobre qué importe se aplica. */}
+          <View className="flex-row items-end gap-2">
+            <View className="flex-1">
+              <TextField
+                label="Cupón"
+                icon={TicketPercent}
+                value={couponInput}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                placeholder="Código de descuento"
+                onChangeText={(value): void => setCouponInput(value.toUpperCase())}
+              />
+            </View>
+            <Button
+              title="Aplicar"
+              variant="outline"
+              block={false}
+              disabled={!couponInput.trim() || couponInput.trim() === coupon}
+              onPress={(): void => setCoupon(couponInput.trim())}
+            />
+          </View>
           {quote.data?.couponError ? (
             <Alert variant="warning" message={quote.data.couponError} />
           ) : null}
           {quote.data?.couponCode ? (
-            <Text className="text-[12px] text-success">Cupón {quote.data.couponCode} aplicado.</Text>
+            <Text variant="caption" tone="success">
+              Cupón {quote.data.couponCode} aplicado.
+            </Text>
           ) : null}
-        </View>
 
-        <OrderSummary quote={quote.data} loading={quote.isFetching} />
+          <OrderSummary quote={quote.data} loading={quote.isFetching} />
 
-        {quote.isError ? (
-          <Alert variant="error" message="No se ha podido calcular el envío. Inténtalo de nuevo." />
-        ) : null}
+          {quote.isError ? (
+            <Alert variant="error" message="No se ha podido calcular el envío. Inténtalo de nuevo." />
+          ) : null}
 
-        <PaymentPicker
-          methods={methods.data ?? []}
-          selection={payment}
-          wallet={wallet.data}
-          walletEnough={walletEnough}
-          loading={methods.isLoading}
-          onSelect={setChosenPayment}
-          onAddCard={(): void => router.push('/checkout/add-card')}
-        />
-
-        <TextField
-          label="Notas para el pedido"
-          value={notes}
-          multiline
-          placeholder="Indicaciones de entrega (opcional)"
-          onChangeText={setNotes}
-        />
+          <TextField
+            label="Notas para el pedido"
+            value={notes}
+            multiline
+            placeholder="Indicaciones de entrega (opcional)"
+            onChangeText={setNotes}
+          />
+        </Paso>
 
         {error ? <Alert variant="error" message={error} /> : null}
 
         {/* Decir qué falta evita el botón gris sin explicación, que es donde se abandona la compra. */}
         {missing.includes('address') ? (
-          <Text className="text-[12px] text-warning">{CHECKOUT_MESSAGES.noAddress}</Text>
+          <Text variant="caption" tone="error">
+            {CHECKOUT_MESSAGES.noAddress}
+          </Text>
         ) : null}
         {missing.includes('payment') ? (
-          <Text className="text-[12px] text-warning">{CHECKOUT_MESSAGES.noPayment}</Text>
+          <Text variant="caption" tone="error">
+            {CHECKOUT_MESSAGES.noPayment}
+          </Text>
         ) : null}
         {payment?.kind === 'PAYPAL' ? (
-          <Text className="text-[12px] text-base-content opacity-70">
+          <Text variant="caption" tone="muted">
             {CHECKOUT_MESSAGES.paypalRedirect}
           </Text>
         ) : null}
 
         <Button
           title="Confirmar pedido"
+          icon={ShieldCheck}
           loading={placing}
           disabled={confirmDisabled}
           onPress={(): void => void confirm()}
         />
       </View>
     </Screen>
+  )
+}
+
+interface PasoProps {
+  numero: number
+  titulo: string
+  children: ReactNode
+}
+
+/**
+ * Un paso de la compra.
+ *
+ * Va numerado porque la compra SÍ es una secuencia —sin dirección no hay portes, sin portes no hay
+ * total— y el número dice cuánto queda. Antes los tres bloques colgaban seguidos con el mismo peso y
+ * la pantalla se leía como un formulario largo en lugar de como un recorrido con final.
+ */
+function Paso({ numero, titulo, children }: PasoProps): ReactElement {
+  return (
+    <View className="gap-3">
+      <View className="flex-row items-center gap-2.5">
+        <View className="h-6 w-6 items-center justify-center rounded-full bg-primary">
+          <Text variant="caption" tone="inverse">
+            {numero}
+          </Text>
+        </View>
+        <Text variant="heading">{titulo}</Text>
+      </View>
+      {children}
+    </View>
   )
 }

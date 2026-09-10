@@ -1,3 +1,4 @@
+import { ShoppingBag } from 'lucide-react-native'
 import { ReactElement } from 'react'
 
 import { EmptyState } from '@features/catalog/presentation/components/EmptyState'
@@ -13,6 +14,7 @@ interface Props {
 export function CartEmptyState({ onBrowseCatalog }: Props): ReactElement {
   return (
     <EmptyState
+      icon={ShoppingBag}
       title="Tu cesta está vacía"
       message="Añade productos desde el catálogo y los verás aquí."
       actionLabel="Ver el catálogo"

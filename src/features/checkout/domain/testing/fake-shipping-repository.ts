@@ -1,7 +1,7 @@
 import { AppError } from '@core/errors/app-error'
 import { err, ok, Result } from '@core/result/result'
 
-import { Region, ShippingQuote } from '../entities/shipping'
+import { Region, ShippingQuote, SupportedCountry } from '../entities/shipping'
 import { ShippingQuoteQuery, ShippingRepository } from '../ports/shipping-repository'
 
 import { aShippingQuote } from './checkout-builders'
@@ -9,6 +9,7 @@ import { aShippingQuote } from './checkout-builders'
 interface Config {
   quote?: ShippingQuote
   regions?: Region[]
+  countries?: SupportedCountry[]
   error?: AppError
 }
 
@@ -30,5 +31,10 @@ export class FakeShippingRepository implements ShippingRepository {
     this.lastCountry = country
     if (this.config.error) return err(this.config.error)
     return ok([...(this.config.regions ?? [])])
+  }
+
+  async countries(): Promise<Result<SupportedCountry[], AppError>> {
+    if (this.config.error) return err(this.config.error)
+    return ok([...(this.config.countries ?? [])])
   }
 }

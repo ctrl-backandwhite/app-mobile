@@ -5,6 +5,7 @@ import { ReactElement } from 'react'
 import { Container } from '@composition/container'
 import { ContainerProvider } from '@composition/container.provider'
 import { AppConfig } from '@core/config/env'
+import { withSafeArea } from '@shared/testing/safe-area'
 
 const CONFIG: AppConfig = {
   apiBaseUrl: 'https://api.test',
@@ -35,9 +36,13 @@ export async function renderCheckout(
   deps: Record<string, unknown> = {},
   client: QueryClient = makeQueryClient(),
 ): Promise<RenderResult> {
+  // El área segura la monta el layout raíz en la aplicación; aquí hace falta porque cualquier hoja
+  // inferior pregunta por los márgenes del sistema y sin proveedor revienta al pintarse.
   return render(
-    <ContainerProvider config={CONFIG} value={deps as unknown as Container}>
-      <QueryClientProvider client={client}>{ui}</QueryClientProvider>
-    </ContainerProvider>,
+    withSafeArea(
+      <ContainerProvider config={CONFIG} value={deps as unknown as Container}>
+        <QueryClientProvider client={client}>{ui}</QueryClientProvider>
+      </ContainerProvider>,
+    ),
   )
 }

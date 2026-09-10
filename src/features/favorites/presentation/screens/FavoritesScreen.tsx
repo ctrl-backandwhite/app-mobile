@@ -1,10 +1,11 @@
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { router } from 'expo-router'
+import { HeartOff } from 'lucide-react-native'
 import { ReactElement } from 'react'
-import { ActivityIndicator, FlatList, View } from 'react-native'
+import { FlatList, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { Screen } from '@ds/components/Screen'
+import { Screen, Spinner, Text } from '@ds/components'
 import { EmptyState, ProductCard, ProductCardSkeleton } from '@features/catalog/presentation/components'
 import { ProductSummary } from '@features/catalog/domain/entities/product'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
@@ -50,12 +51,14 @@ export function FavoritesScreen(): ReactElement {
 
   if (favoritos.isLoading) {
     return (
-      <Screen padded={false}>
+      <Screen padded={false} edges={['top']}>
         <View className="flex-row flex-wrap gap-3 p-5">
-          <ProductCardSkeleton />
-          <ProductCardSkeleton />
-          <ProductCardSkeleton />
-          <ProductCardSkeleton />
+          <View className="flex-1">
+            <ProductCardSkeleton />
+          </View>
+          <View className="flex-1">
+            <ProductCardSkeleton />
+          </View>
         </View>
       </Screen>
     )
@@ -78,6 +81,7 @@ export function FavoritesScreen(): ReactElement {
     return (
       <Screen>
         <EmptyState
+          icon={HeartOff}
           title="Todavía no has guardado nada"
           message="Toca el corazón de un producto para tenerlo aquí a mano."
           actionLabel="Ver el catálogo"
@@ -88,7 +92,7 @@ export function FavoritesScreen(): ReactElement {
   }
 
   return (
-    <Screen padded={false}>
+    <Screen padded={false} scroll={false} edges={['top']}>
       <FlatList
         data={items}
         keyExtractor={(item) => item.id}
@@ -96,13 +100,28 @@ export function FavoritesScreen(): ReactElement {
         columnWrapperClassName="gap-3 px-5"
         contentContainerClassName="gap-3 py-4"
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <View className="px-5 pb-2">
+            <Text variant="heading">Guardados</Text>
+            <Text variant="label" tone="muted" className="mt-1">
+              {items.length === 1 ? '1 producto' : `${items.length} productos`}
+            </Text>
+          </View>
+        }
         // Deslizar hacia abajo para actualizar: es el gesto que se espera en una lista de móvil, y aquí
         // hace falta de verdad porque lo guardado puede cambiar desde otra pantalla o desde la web.
         refreshing={favoritos.isRefetching}
         onRefresh={() => void favoritos.refetch()}
         renderItem={({ item }) => (
-          <View className="flex-1">
-            <ProductCard product={item} onPress={openProduct} overlay={<FavoriteButton productId={item.id} />} />
+          // `max-w-[50%]`: en una fila incompleta —una lista de un solo producto, o la última fila
+          // impar— `flex-1` estiraba la tarjeta a todo el ancho y la rejilla se deshacía justo donde
+          // más se nota. Acotando el ancho, la tarjeta suelta conserva su sitio.
+          <View className="max-w-[50%] flex-1">
+            <ProductCard
+              product={item}
+              onPress={openProduct}
+              overlay={<FavoriteButton productId={item.id} />}
+            />
           </View>
         )}
         onEndReachedThreshold={0.5}
@@ -111,9 +130,7 @@ export function FavoritesScreen(): ReactElement {
         }}
         ListFooterComponent={
           favoritos.isFetchingNextPage ? (
-            <View className="py-4">
-              <ActivityIndicator />
-            </View>
+            <Spinner className="py-4" />
           ) : null
         }
       />

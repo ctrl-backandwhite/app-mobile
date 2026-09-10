@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { BellOff } from 'lucide-react-native'
 import { ReactElement, useState } from 'react'
-import { FlatList, Pressable, Switch, Text, View } from 'react-native'
+import { FlatList, Pressable, Switch, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { Alert, Screen } from '@ds/components'
+import { Alert, Screen, Skeleton, Text } from '@ds/components'
 import { EmptyState } from '@features/catalog/presentation/components'
 import {
   PlatformNotification,
@@ -120,12 +121,11 @@ export function NotificationsScreen(): ReactElement {
    * pedir que ocurra lo que se quiere que avise.
    */
   const interruptorDeAvisos = (
-    <View
-      className="flex-row items-center justify-between rounded-box border border-base-300 bg-base-100 p-3"
-    >
+    <View>
+      <View className="flex-row items-center justify-between rounded-box border border-base-300 bg-base-100 p-3">
       <View className="flex-1 pr-3">
-        <Text className="font-medium text-[14px] text-base-content">Avisos en el móvil</Text>
-        <Text className="mt-0.5 text-[12px] text-base-content opacity-60">
+        <Text variant="label">Avisos en el móvil</Text>
+        <Text variant="caption" tone="muted" className="mt-0.5">
           Recibe un aviso cuando cambie el estado de un pedido.
         </Text>
       </View>
@@ -135,14 +135,19 @@ export function NotificationsScreen(): ReactElement {
         value={avisosEnElMovil}
         disabled={activarEnElMovil.isPending}
         onValueChange={(): void => activarEnElMovil.mutate()}
-      />
+        />
+      </View>
     </View>
   )
 
   if (avisos.isLoading) {
     return (
       <Screen>
-        <Text className="py-8 text-center text-[13px] text-base-content opacity-60">Cargando…</Text>
+        <View className="gap-3">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </View>
       </Screen>
     )
   }
@@ -170,6 +175,7 @@ export function NotificationsScreen(): ReactElement {
           </View>
         ) : null}
         <EmptyState
+          icon={BellOff}
           title="No tienes avisos"
           message="Aquí aparecerán los cambios de tus pedidos y los mensajes de la plataforma."
         />
@@ -193,7 +199,7 @@ export function NotificationsScreen(): ReactElement {
             {error ? <Alert variant="error" message={error} /> : null}
             {sinLeer > 0 ? (
               <View className="flex-row items-center justify-between">
-                <Text className="text-[13px] text-base-content opacity-70">
+                <Text variant="label" tone="muted">
                   {sinLeer === 1 ? '1 sin leer' : `${sinLeer} sin leer`}
                 </Text>
                 <Pressable
@@ -203,7 +209,7 @@ export function NotificationsScreen(): ReactElement {
                   disabled={leerTodo.isPending}
                   hitSlop={8}
                 >
-                  <Text className="text-[13px] text-primary">Marcar todo como leído</Text>
+                  <Text variant="label" tone="primary">Marcar todo como leído</Text>
                 </Pressable>
               </View>
             ) : null}
@@ -248,10 +254,10 @@ function Aviso({ aviso, onLeer, onArchivar }: AvisoProps): ReactElement {
       >
         <View className="flex-row items-center gap-2">
           {aviso.read ? null : <View testID={`sin-leer-${aviso.id}`} className="h-2 w-2 rounded-full bg-primary" />}
-          <Text className="flex-1 font-medium text-[14px] text-base-content">{aviso.title}</Text>
+          <Text variant="label" className="flex-1">{aviso.title}</Text>
         </View>
         {aviso.body.length > 0 ? (
-          <Text className="mt-1 text-[13px] text-base-content opacity-75">{aviso.body}</Text>
+          <Text variant="label" tone="muted" className="mt-1">{aviso.body}</Text>
         ) : null}
       </Pressable>
 
@@ -263,7 +269,9 @@ function Aviso({ aviso, onLeer, onArchivar }: AvisoProps): ReactElement {
           onPress={onArchivar}
           hitSlop={8}
         >
-          <Text className="text-[12px] text-base-content opacity-60">Archivar</Text>
+          <Text variant="caption" tone="muted" className="shrink-0">
+            Archivar
+          </Text>
         </Pressable>
       </View>
     </View>

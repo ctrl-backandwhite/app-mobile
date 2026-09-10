@@ -22,7 +22,7 @@ describe('ProductCard', () => {
     )
 
     expect(screen.getByText('39,90 €')).toBeOnTheScreen()
-    expect(screen.getByText('−38%')).toBeOnTheScreen()
+    expect(screen.getByText('−38 %')).toBeOnTheScreen()
   })
 
   it('no pinta ningún precio anterior cuando el producto no está rebajado', async () => {
@@ -109,5 +109,46 @@ describe('ProductCard', () => {
     await render(<ProductCard product={aProduct({ monthlySales: 12500 })} onPress={jest.fn()} />)
 
     expect(screen.getByText('12.5k')).toBeOnTheScreen()
+  })
+
+  it('anuncia que la tienda cubre el arancel', async () => {
+    await render(<ProductCard product={aProduct({ dutyCovered: true })} onPress={jest.fn()} />)
+
+    expect(screen.getByLabelText('Arancel cubierto por NX036')).toBeOnTheScreen()
+  })
+
+  it('anuncia que la tienda pone parte del envío', async () => {
+    await render(<ProductCard product={aProduct({ shippingCovered: true })} onPress={jest.fn()} />)
+
+    expect(screen.getByLabelText('Envío subvencionado por NX036')).toBeOnTheScreen()
+  })
+
+  it('no anuncia nada cubierto cuando la tienda no pone nada', async () => {
+    await render(<ProductCard product={aProduct()} onPress={jest.fn()} />)
+
+    expect(screen.queryByLabelText(/cubierto|subvencionado/)).toBeNull()
+  })
+
+  it('no ofrece compra rápida si la pantalla no la permite', async () => {
+    await render(<ProductCard product={aProduct()} onPress={jest.fn()} />)
+
+    expect(screen.queryByText('Añadir')).toBeNull()
+  })
+
+  it('añade a la cesta desde la propia tarjeta', async () => {
+    const onAdd = jest.fn()
+    const product = aProduct()
+    await render(<ProductCard product={product} onPress={jest.fn()} onAdd={onAdd} />)
+
+    await fireEvent.press(screen.getByText('Añadir'))
+
+    expect(onAdd).toHaveBeenCalledWith(product)
+  })
+
+  it('dice que ya está añadido y no vuelve a ofrecerse', async () => {
+    await render(<ProductCard product={aProduct()} onPress={jest.fn()} onAdd={jest.fn()} added />)
+
+    expect(screen.getByText('Añadido')).toBeOnTheScreen()
+    expect(screen.queryByText('Añadir')).toBeNull()
   })
 })

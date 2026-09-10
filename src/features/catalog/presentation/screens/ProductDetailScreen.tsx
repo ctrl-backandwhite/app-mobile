@@ -1,12 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { router, useLocalSearchParams } from 'expo-router'
+import { ChevronLeft, Flame, Share2, ShoppingBag } from 'lucide-react-native'
 import { ReactElement, useMemo, useState } from 'react'
-import { Ionicons } from '@expo/vector-icons'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, ScrollView, Share, View } from 'react-native'
 
-import { useContainer } from '@composition/container.provider'
-import { Alert, Button, Screen } from '@ds/components'
-import { colors } from '@ds/tokens'
+import { useAppConfig, useContainer } from '@composition/container.provider'
+import { Alert, Button, Icon, PriceTag, Rating, Screen, Skeleton, Text } from '@ds/components'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 import {
   imagesFor,
@@ -18,7 +17,9 @@ import {
   VariantSelection,
 } from '@features/catalog/domain/entities/product-detail'
 import { CartLine } from '@features/cart/domain/entities/cart-line'
+import { useSyncCartCount } from '@features/cart/presentation/hooks/use-sync-cart-count'
 import { FavoriteButton } from '@features/favorites/presentation/components/FavoriteButton'
+import { useRecordView } from '@features/history/presentation/hooks/use-record-view'
 
 import {
   ComplianceBlock,
@@ -38,6 +39,9 @@ export function ProductDetailScreen(): ReactElement {
   const { getProductDetail, listReviews, listRelatedProducts, addToCart } = useContainer()
   const locale = useSessionStore((state) => state.locale)
   const { slug } = useLocalSearchParams<{ slug: string }>()
+  const config = useAppConfig()
+  // Añadir desde aquí tiene que verse en el distintivo de la pestaña, no solo en la cesta.
+  const refreshCartCount = useSyncCartCount()
 
   const [selection, setSelection] = useState<VariantSelection>({})
   const [quantity, setQuantity] = useState(1)
@@ -55,6 +59,9 @@ export function ProductDetailScreen(): ReactElement {
   })
 
   const product = detail.data
+  // Se anota al llegar la ficha y no al abrir la pantalla: hasta que no responde el servidor no se
+  // sabe qué producto es —la ruta trae el nombre corto, no el identificador—.
+  useRecordView(product?.id)
 
   const reviews = useQuery({
     queryKey: ['reviews', product?.id],
@@ -92,8 +99,14 @@ export function ProductDetailScreen(): ReactElement {
 
   if (detail.isLoading) {
     return (
-      <Screen>
-        <Text className="py-8 text-center text-[13px] text-base-content opacity-60">Cargando…</Text>
+      <Screen padded={false} scroll={false}>
+        <Skeleton className="aspect-square w-full rounded-none" />
+        <View className="gap-3 p-5">
+          <Skeleton className="h-5 w-4/5" />
+          <Skeleton className="h-5 w-3/5" />
+          <Skeleton className="h-8 w-1/3" />
+          <Skeleton className="h-12 w-full" />
+        </View>
       </Screen>
     )
   }
@@ -118,9 +131,50 @@ export function ProductDetailScreen(): ReactElement {
   // existencia activa detrás. Antes el botón seguía activo y la línea se guardaba SIN variante.
   const unavailable = isSelectionUnavailable(product, selection)
 
+  const addLine = (): void => {
+    // La línea guarda lo justo para pintarse: el importe lo recalcula el backend en el presupuesto.
+    // Guardar aquí el precio del momento haría que la cesta enseñara un total distinto del que se
+    // cobra en cuanto cambiara una regla de precio.
+    const line: CartLine = {
+      productId: product.id,
+      variantId: variant?.id,
+      slug: product.slug,
+      title: product.title,
+      image: images[0]?.url ?? product.mainImage,
+      variantLabel: variantLabelOf(variant),
+      sku: variant?.sku,
+      quantity,
+      moq: product.moq,
+      // El servidor los exige al guardar la línea. Es lo que se VE al añadir, no un coste: el
+      // importe que se cobra lo recalcula él en el presupuesto.
+      unitPriceSource: product.displayPrice,
+      sourceCurrency: product.displayCurrency,
+    }
+    // Con `catch`: sin él, un fallo al guardar dejaba el botón como si nada hubiera pasado —ni
+    // «Añadido» ni error— y la cesta seguía vacía sin que nadie supiera por qué.
+    void addToCart
+      .execute(line)
+      .then(() => {
+        setError(null)
+        setAdded(true)
+        refreshCartCount()
+        // El aviso se retira solo: dejar el botón en «Añadido» para siempre haría dudar de si una
+        // segunda pulsación ha llegado a hacer algo.
+        setTimeout(() => setAdded(false), 2000)
+      })
+      .catch(() => setError('No se ha podido añadir a la cesta. Inténtalo de nuevo.'))
+  }
+
+  /** Comparte el enlace del ESCAPARATE, que es el que puede abrir cualquiera sin la aplicación. */
+  const share = (): void => {
+    void Share.share({
+      message: `${product.title} — ${config.webBaseUrl}/catalog/${product.slug}`,
+    }).catch(() => undefined)
+  }
+
   return (
-    <Screen padded={false}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-10">
+    <Screen padded={false} scroll={false} edges={[]}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="pb-6">
         <View>
           <ProductGallery images={images} videoUrl={product.videoUrl} />
           {/*
@@ -128,42 +182,77 @@ export function ProductDetailScreen(): ReactElement {
             comería la primera foto—, así que sin esto la única salida era el gesto del sistema: en
             iOS no hay tecla de atrás, y quien no acierta con el gesto se sale de la aplicación.
           */}
-          <View className="absolute left-4 top-4">
+          <View className="absolute left-4 top-12">
             <Pressable
               testID="volver-desde-la-ficha"
               accessibilityRole="button"
               accessibilityLabel="Volver"
               onPress={() => router.back()}
               hitSlop={10}
-              className="h-9 w-9 items-center justify-center rounded-full bg-base-100/90"
+              className="h-10 w-10 items-center justify-center rounded-full bg-base-100/90"
             >
-              <Ionicons name="chevron-back" size={24} color={colors.light.baseContent} />
+              <Icon glyph={ChevronLeft} size="lg" />
             </Pressable>
           </View>
-          <View className="absolute right-4 top-4">
-            <FavoriteButton productId={product.id} size={24} />
+          <View className="absolute right-4 top-12 flex-row gap-2">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Compartir producto"
+              onPress={share}
+              hitSlop={10}
+              className="h-10 w-10 items-center justify-center rounded-full bg-base-100/90"
+            >
+              <Icon glyph={Share2} size="md" />
+            </Pressable>
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-base-100/90">
+              <FavoriteButton productId={product.id} size={20} />
+            </View>
           </View>
         </View>
 
         <View className="gap-5 p-5">
-          <View className="gap-2">
-            <Text className="text-[17px] leading-[24px] text-base-content">{product.title}</Text>
+          <View className="gap-2.5">
+            <Text variant="body">{product.title}</Text>
+
             {price ? (
-              <View className="flex-row flex-wrap items-center gap-x-2 gap-y-1">
-                <Text className="font-medium text-[24px] text-base-content">{price}</Text>
-                {previousPrice ? (
-                  <Text className="text-[14px] text-error line-through">{previousPrice}</Text>
+              <PriceTag
+                price={price}
+                original={previousPrice ?? undefined}
+                discountPercent={product.discountPercent}
+                size="lg"
+              />
+            ) : null}
+
+            {/* Prueba de venta: valoración y ventas del mes juntas, que es lo que decide si una
+                referencia merece el pedido. */}
+            {product.rating != null || product.monthlySales > 0 ? (
+              <View className="flex-row items-center gap-4">
+                {product.rating != null ? (
+                  <Rating value={product.rating} count={product.reviewCount} />
+                ) : null}
+                {product.monthlySales > 0 ? (
+                  <View className="flex-row items-center gap-1">
+                    <Icon glyph={Flame} size="sm" tone="warning" />
+                    <Text variant="caption" tone="muted">
+                      {product.monthlySales.toLocaleString(locale)} vendidos al mes
+                    </Text>
+                  </View>
                 ) : null}
               </View>
             ) : null}
-            {product.brand ? (
-              <Text className="text-[12px] text-base-content opacity-70">{product.brand}</Text>
-            ) : null}
-            {product.moq > 1 ? (
-              <Text className="text-[12px] text-base-content opacity-70">
-                Pedido mínimo: {product.moq} unidades
-              </Text>
-            ) : null}
+
+            <View className="flex-row flex-wrap items-center gap-x-4">
+              {product.brand ? (
+                <Text variant="caption" tone="muted">
+                  {product.brand}
+                </Text>
+              ) : null}
+              {product.moq > 1 ? (
+                <Text variant="caption" tone="muted">
+                  Pedido mínimo: {product.moq} unidades
+                </Text>
+              ) : null}
+            </View>
           </View>
 
           {product.variantOptions.length > 0 ? (
@@ -177,7 +266,9 @@ export function ProductDetailScreen(): ReactElement {
           ) : null}
 
           <View className="gap-2">
-            <Text className="text-[13px] text-base-content opacity-80">Cantidad</Text>
+            <Text variant="label" tone="muted">
+              Cantidad
+            </Text>
             <QuantityStepper value={quantity} min={product.moq} onChange={setQuantity} />
           </View>
 
@@ -194,55 +285,24 @@ export function ProductDetailScreen(): ReactElement {
             />
           ) : null}
 
-          <Button
-            title={added ? 'Añadido a la cesta' : 'Añadir a la cesta'}
-            disabled={needsChoice || unavailable}
-            onPress={() => {
-              // La línea guarda lo justo para pintarse: el importe lo recalcula el backend en el
-              // presupuesto. Guardar aquí el precio del momento haría que la cesta enseñara un
-              // total distinto del que se cobra en cuanto cambiara una regla de precio.
-              const line: CartLine = {
-                productId: product.id,
-                variantId: variant?.id,
-                slug: product.slug,
-                title: product.title,
-                image: images[0]?.url ?? product.mainImage,
-                variantLabel: variantLabelOf(variant),
-                sku: variant?.sku,
-                quantity,
-                moq: product.moq,
-                // El servidor los exige al guardar la línea. Es lo que se VE al añadir, no un coste:
-                // el importe que se cobra lo recalcula él en el presupuesto.
-                unitPriceSource: product.displayPrice,
-                sourceCurrency: product.displayCurrency,
-              }
-              // Con `catch`: sin él, un fallo al guardar dejaba el botón como si nada hubiera pasado
-              // —ni «Añadido» ni error— y la cesta seguía vacía sin que nadie supiera por qué.
-              void addToCart
-                .execute(line)
-                .then(() => {
-                  setError(null)
-                  setAdded(true)
-                  // El aviso se retira solo: dejar el botón en «Añadido» para siempre haría dudar de
-                  // si una segunda pulsación ha llegado a hacer algo.
-                  setTimeout(() => setAdded(false), 2000)
-                })
-                .catch(() => setError('No se ha podido añadir a la cesta. Inténtalo de nuevo.'))
-            }}
-          />
-
           {error ? <Alert variant="error" message={error} /> : null}
 
           {added ? (
-            <Pressable onPress={() => router.push('/(app)/(tabs)/cart')} accessibilityRole="link">
-              <Text className="text-center text-[13px] text-primary">Ver la cesta</Text>
+            <Pressable
+              onPress={() => router.push('/(app)/(tabs)/cart')}
+              accessibilityRole="link"
+              hitSlop={8}
+            >
+              <Text variant="label" tone="primary" className="text-center">
+                Ver la cesta
+              </Text>
             </Pressable>
           ) : null}
 
           {product.description ? (
             <View className="gap-2">
-              <Text className="font-medium text-[15px] text-base-content">Descripción</Text>
-              <Text className="text-[13px] leading-[20px] text-base-content opacity-90">
+              <Text variant="heading">Descripción</Text>
+              <Text variant="body" tone="muted">
                 {product.description}
               </Text>
             </View>
@@ -263,6 +323,33 @@ export function ProductDetailScreen(): ReactElement {
           />
         ) : null}
       </ScrollView>
+
+      {/*
+        Barra de compra fija.
+        La ficha es larga —galería, variantes, tramos, especificaciones, opiniones— y el botón vivía
+        a media página: al bajar a leer las opiniones había que subir de nuevo a ciegas para comprar.
+        Aquí el precio y la acción acompañan durante todo el recorrido.
+      */}
+      <View
+        className="flex-row items-center gap-4 border-t border-base-300 bg-base-100 px-5 pb-6 pt-3"
+      >
+        {price ? (
+          <View className="gap-0.5">
+            <Text variant="caption" tone="muted">
+              {quantity > 1 ? `${quantity} uds. · unidad` : 'Precio'}
+            </Text>
+            <Text variant="price">{tier?.unitPriceFormatted ?? price}</Text>
+          </View>
+        ) : null}
+        <View className="flex-1">
+          <Button
+            title={added ? 'Añadido a la cesta' : 'Añadir a la cesta'}
+            icon={ShoppingBag}
+            disabled={needsChoice || unavailable}
+            onPress={addLine}
+          />
+        </View>
+      </View>
     </Screen>
   )
 }

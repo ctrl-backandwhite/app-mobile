@@ -1,5 +1,7 @@
 import { ReactElement } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
+
+import { Text } from '@ds/components'
 
 import {
   ProductCompliance,
@@ -44,13 +46,13 @@ export function ComplianceBlock({ compliance }: Props): ReactElement | null {
           accessibilityRole="alert"
           className="gap-1.5 rounded-box border border-warning bg-warning/10 p-4"
         >
-          <Text className="font-medium text-[14px] text-base-content">
+          <Text variant="label">
             Información de seguridad
           </Text>
           {warnings.map((warning: string): ReactElement => (
             <View key={warning} className="flex-row gap-2">
-              <Text className="text-[13px] text-base-content">•</Text>
-              <Text className="flex-1 text-[13px] leading-[19px] text-base-content">{warning}</Text>
+              <Text variant="label">•</Text>
+              <Text variant="label" className="flex-1 leading-[19px]">{warning}</Text>
             </View>
           ))}
         </View>
@@ -61,45 +63,45 @@ export function ComplianceBlock({ compliance }: Props): ReactElement | null {
           testID="compliance-identity"
           className="gap-4 rounded-box border border-base-300 bg-base-100 p-4"
         >
-          <Text className="font-medium text-[15px] text-base-content">
+          <Text variant="heading">
             Conformidad del producto
           </Text>
 
           {manufacturerName ? (
             <View className="gap-0.5">
-              <Text className="text-[11px] uppercase tracking-wide text-base-content opacity-70">
+              <Text variant="caption" tone="muted" className="uppercase tracking-wide">
                 Fabricante
               </Text>
-              <Text className="font-medium text-[13px] text-base-content">{manufacturerName}</Text>
+              <Text variant="label">{manufacturerName}</Text>
               {compliance?.manufacturerAddress ? (
-                <Text className="text-[13px] leading-[19px] text-base-content">
+                <Text variant="label" className="leading-[19px]">
                   {compliance.manufacturerAddress}
                 </Text>
               ) : null}
               {compliance?.manufacturerEmail ? (
-                <Text className="text-[13px] text-primary">{compliance.manufacturerEmail}</Text>
+                <Text variant="label" tone="primary">{compliance.manufacturerEmail}</Text>
               ) : null}
             </View>
           ) : null}
 
           {person ? (
             <View className="gap-0.5">
-              <Text className="text-[11px] uppercase tracking-wide text-base-content opacity-70">
+              <Text variant="caption" tone="muted" className="uppercase tracking-wide">
                 Operador económico responsable en la UE
               </Text>
-              <Text className="text-[13px] text-base-content">
-                <Text className="font-medium">{person.name}</Text>
+              <Text variant="label">
+                <Text >{person.name}</Text>
                 {/* El cargo llega ya traducido por el backend: la app no lo reinterpreta. */}
-                <Text className="opacity-70"> · {person.roleLabel}</Text>
+                <Text tone="muted"> · {person.roleLabel}</Text>
               </Text>
-              <Text className="text-[13px] leading-[19px] text-base-content">
+              <Text variant="label" className="leading-[19px]">
                 {addressOf(person)}
               </Text>
-              <Text className="text-[13px] text-primary">{person.email}</Text>
+              <Text variant="label" tone="primary">{person.email}</Text>
             </View>
           ) : null}
 
-          <Text className="border-t border-base-300 pt-3 text-[11px] leading-[16px] text-base-content opacity-60">
+          <Text variant="caption" tone="muted" className="border-t border-base-300 pt-3 leading-[16px]">
             Información publicada conforme al Reglamento (UE) 2023/988 relativo a la seguridad
             general de los productos.
           </Text>

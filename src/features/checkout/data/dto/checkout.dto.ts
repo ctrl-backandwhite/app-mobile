@@ -67,6 +67,11 @@ export const shippingQuoteDto = z.object({
 
 export const regionListDto = z.array(z.object({ code: z.string(), name: z.string().default('') }))
 
+/** Cobertura de envío. Sin nombre el país no se puede ofrecer: un código suelto no se reconoce. */
+export const supportedCountryListDto = z.array(
+  z.object({ countryCode: z.string(), countryName: z.string().default('') }),
+)
+
 /**
  * Pedido recién creado.
  *

@@ -1,9 +1,9 @@
-import { Ionicons } from '@expo/vector-icons'
 import { Tabs } from 'expo-router'
+import { Heart, House, LayoutGrid, ShoppingBag, User } from 'lucide-react-native'
 import { ReactElement } from 'react'
-import { useColorScheme } from 'react-native'
 
-import { colors } from '@ds/tokens'
+import { fontFamily, useTheme } from '@ds/tokens'
+import { useCartCountStore } from '@features/cart/presentation/state/cart-count.store'
 
 /**
  * Barra inferior de la aplicación. Es el patrón que espera quien usa un móvil para moverse entre las
@@ -13,34 +13,42 @@ import { colors } from '@ds/tokens'
  * objetos de estilo, fuera del alcance de NativeWind.
  */
 export default function TabsLayout(): ReactElement {
-  const dark = useColorScheme() === 'dark'
-  const palette = dark ? colors.dark : colors.light
+  const palette = useTheme()
+  const unidades = useCartCountStore((state) => state.units)
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: palette.primary,
-        tabBarInactiveTintColor: palette.baseContent,
+        // Antes el inactivo era la tinta plena, así que las cinco pestañas pesaban igual y no se
+        // distinguía dónde estabas. La tinta media deja que la activa destaque sola.
+        tabBarInactiveTintColor: palette.muted,
+        /*
+          Sin alto fijo: React Navigation le suma el margen inferior del sistema, que es lo que deja
+          los rótulos por encima de la barra de gestos. Con un alto escrito a mano —60 px— «Guardados»
+          quedaba cortado por la raya de navegación de Android.
+        */
         tabBarStyle: {
           backgroundColor: palette.base100,
           borderTopColor: palette.base300,
+          paddingTop: 6,
         },
-        tabBarLabelStyle: { fontFamily: 'Roboto_400Regular', fontSize: 11 },
+        tabBarLabelStyle: { fontFamily: fontFamily.regular, fontSize: 11, letterSpacing: 0.1 },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Inicio',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home-outline" color={color} size={size} />,
+          tabBarIcon: ({ color }) => <House color={color} size={22} strokeWidth={1.5} />,
         }}
       />
       <Tabs.Screen
         name="catalog"
         options={{
           title: 'Catálogo',
-          tabBarIcon: ({ color, size }) => <Ionicons name="grid-outline" color={color} size={size} />,
+          tabBarIcon: ({ color }) => <LayoutGrid color={color} size={22} strokeWidth={1.5} />,
         }}
       />
       {/*
@@ -52,21 +60,33 @@ export default function TabsLayout(): ReactElement {
         name="favorites"
         options={{
           title: 'Guardados',
-          tabBarIcon: ({ color, size }) => <Ionicons name="heart-outline" color={color} size={size} />,
+          tabBarIcon: ({ color }) => <Heart color={color} size={22} strokeWidth={1.5} />,
         }}
       />
       <Tabs.Screen
         name="cart"
         options={{
           title: 'Cesta',
-          tabBarIcon: ({ color, size }) => <Ionicons name="cart-outline" color={color} size={size} />,
+          tabBarIcon: ({ color }) => <ShoppingBag color={color} size={22} strokeWidth={1.5} />,
+          /*
+            Cuántas unidades esperan en la cesta. Sin este número, añadir un producto no dejaba
+            ninguna señal fuera de la propia ficha y había que entrar en la cesta para comprobar que
+            el toque había servido de algo.
+          */
+          tabBarBadge: unidades > 0 ? unidades : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: palette.accent,
+            color: palette.accentContent,
+            fontFamily: fontFamily.medium,
+            fontSize: 10,
+          },
         }}
       />
       <Tabs.Screen
         name="account"
         options={{
           title: 'Cuenta',
-          tabBarIcon: ({ color, size }) => <Ionicons name="person-outline" color={color} size={size} />,
+          tabBarIcon: ({ color }) => <User color={color} size={22} strokeWidth={1.5} />,
         }}
       />
     </Tabs>

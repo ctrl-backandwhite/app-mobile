@@ -1,11 +1,13 @@
 import { router } from 'expo-router'
+import { Bell, CreditCard, Globe, Heart, History, LogOut, MapPin, Receipt, ShieldCheck } from 'lucide-react-native'
 import { ReactElement, useState } from 'react'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { ScrollView, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { Alert, Button, Card, Screen } from '@ds/components'
+import { Alert, Button, Card, ListRow, Screen, Text } from '@ds/components'
 import { greetingNameOf, isStaff, UserRole } from '@features/auth/domain/entities/user'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
+import { useCountryNames } from '@features/checkout/presentation/hooks/use-country-name'
 
 const ROLE_LABELS: Record<UserRole, string> = {
   ADMIN: 'Administración',
@@ -34,6 +36,7 @@ export function AccountScreen(): ReactElement {
   const currency = useSessionStore((state) => state.currency)
   const locale = useSessionStore((state) => state.locale)
   const [saliendo, setSaliendo] = useState(false)
+  const nombreDelPais = useCountryNames()
 
   async function cierraSesion(): Promise<void> {
     setSaliendo(true)
@@ -61,81 +64,100 @@ export function AccountScreen(): ReactElement {
   if (!user) return <View testID="cuenta-vacia" />
 
   return (
-    <Screen padded={false}>
+    <Screen padded={false} edges={['top']}>
       <ScrollView contentContainerClassName="gap-4 p-5">
         <View>
-          <Text className="text-[13px] text-base-content opacity-70">Tu cuenta</Text>
-          <Text className="mt-1 font-medium text-[24px] text-base-content">
+          <Text variant="eyebrow" tone="muted">
+            Tu cuenta
+          </Text>
+          <Text variant="heading" className="mt-1">
             {greetingNameOf(user)}
           </Text>
-          <Text className="mt-0.5 text-[13px] text-base-content opacity-60">{user.email}</Text>
+          <Text variant="label" tone="muted" className="mt-0.5">
+            {user.email}
+          </Text>
         </View>
 
         {isStaff(user) ? <Alert variant="warning" message={STAFF_NOTICE} /> : null}
 
-        <Card>
-          <Acceso
+        <Card padding="none" className="px-5 py-1">
+          <ListRow
             testID="ir-a-avisos"
-            icono="🔔"
-            titulo="Avisos"
-            detalle="Pedidos, facturación y mensajes"
+            icon={Bell}
+            title="Avisos"
+            description="Pedidos, facturación y mensajes"
             onPress={() => router.push('/notifications')}
           />
-          <Acceso
+          <ListRow
             testID="ir-a-pedidos"
-            icono="🧾"
-            titulo="Mis pedidos"
-            detalle="Seguimiento, facturas y devoluciones"
+            icon={Receipt}
+            title="Mis pedidos"
+            description="Seguimiento, facturas y devoluciones"
             onPress={() => router.push('/orders')}
           />
-          <Acceso
+          <ListRow
             testID="ir-a-guardados"
-            icono="❤️"
-            titulo="Guardados"
-            detalle="Los productos que has marcado"
+            icon={Heart}
+            title="Guardados"
+            description="Los productos que has marcado"
             onPress={() => router.push('/favorites')}
           />
-          <Acceso
+          {/* Junto a «Guardados» porque son la misma intención en dos grados: lo que interesó tanto
+              como para marcarlo y lo que solo se llegó a mirar. */}
+          <ListRow
+            testID="ir-a-historial"
+            icon={History}
+            title="Lo que has visto"
+            description="Vuelve a las fichas que abriste"
+            onPress={() => router.push('/settings/viewed')}
+          />
+          <ListRow
+            testID="ir-a-direcciones"
+            icon={MapPin}
+            title="Direcciones"
+            description="A dónde llegan tus pedidos"
+            onPress={() => router.push('/settings/addresses')}
+          />
+          <ListRow
             testID="ir-a-monedero"
-            icono="💳"
-            titulo="Monedero"
-            detalle="Saldo y movimientos"
+            icon={CreditCard}
+            title="Monedero"
+            description="Saldo y movimientos"
             onPress={() => router.push('/wallet')}
           />
-          <Acceso
-            testID="ir-a-plan"
-            icono="⭐"
-            titulo="Mi plan"
-            detalle="Suscripción y facturación"
-            onPress={() => router.push('/settings/subscription')}
-          />
-          <Acceso
+          <ListRow
             testID="ir-a-region"
-            icono="🌍"
-            titulo="Idioma y divisa"
+            icon={Globe}
+            title="Idioma y divisa"
             // Se enseña lo que hay puesto AHORA: es el ajuste que decide los importes que se leen
             // antes de comprar, y tenerlo que abrir para saberlo sería esconderlo.
-            detalle={`${locale.toUpperCase()} · ${currency}`}
+            description={`${locale.toUpperCase()} · ${currency}`}
             onPress={() => router.push('/settings/region')}
           />
-          <Acceso
+          <ListRow
             testID="ir-a-seguridad"
-            icono="🔒"
-            titulo="Seguridad"
-            detalle="Contraseña, sesiones y borrado de cuenta"
+            icon={ShieldCheck}
+            title="Seguridad"
+            description="Contraseña, sesiones y borrado de cuenta"
             onPress={() => router.push('/settings/security')}
-            ultimo
+            last
           />
         </Card>
 
         <Card>
           <View className="gap-3">
             <Dato etiqueta="Perfil" valor={ROLE_LABELS[user.role]} />
-            <Dato etiqueta="País de registro" valor={user.country ?? 'Sin definir'} />
+            <Dato etiqueta="País de registro" valor={nombreDelPais(user.country) || 'Sin definir'} />
           </View>
         </Card>
 
-        <Button title="Cerrar sesión" onPress={cierraSesion} loading={saliendo} variant="outline" />
+        <Button
+          title="Cerrar sesión"
+          onPress={cierraSesion}
+          loading={saliendo}
+          variant="outline"
+          icon={LogOut}
+        />
       </ScrollView>
     </Screen>
   )
@@ -144,36 +166,10 @@ export function AccountScreen(): ReactElement {
 function Dato({ etiqueta, valor }: { etiqueta: string; valor: string }): ReactElement {
   return (
     <View className="flex-row items-center justify-between">
-      <Text className="text-[13px] text-base-content opacity-70">{etiqueta}</Text>
-      <Text className="font-medium text-[14px] text-base-content">{valor}</Text>
+      <Text variant="label" tone="muted">
+        {etiqueta}
+      </Text>
+      <Text variant="label">{valor}</Text>
     </View>
-  )
-}
-
-interface AccesoProps {
-  icono: string
-  titulo: string
-  detalle: string
-  testID: string
-  onPress: () => void
-  ultimo?: boolean
-}
-
-/** Una fila de acceso. Alto de dedo y toda la fila pulsable, no solo el texto. */
-function Acceso({ icono, titulo, detalle, testID, onPress, ultimo }: AccesoProps): ReactElement {
-  return (
-    <Pressable
-      testID={testID}
-      accessibilityRole="button"
-      onPress={onPress}
-      className={`min-h-14 flex-row items-center gap-3 py-3 ${ultimo ? '' : 'border-b border-base-300'}`}
-    >
-      <Text className="text-[20px]">{icono}</Text>
-      <View className="flex-1">
-        <Text className="font-medium text-[14px] text-base-content">{titulo}</Text>
-        <Text className="text-[12px] text-base-content opacity-60">{detalle}</Text>
-      </View>
-      <Text className="text-[16px] text-base-content opacity-40">›</Text>
-    </Pressable>
   )
 }

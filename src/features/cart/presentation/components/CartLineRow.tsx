@@ -1,5 +1,8 @@
+import { Bookmark, Trash2 } from 'lucide-react-native'
 import { ReactElement } from 'react'
-import { Image, Pressable, Text, View } from 'react-native'
+import { Pressable, View } from 'react-native'
+
+import { Icon, RemoteImage, Text } from '@ds/components'
 
 import { CartLine, minimumQuantity } from '@features/cart/domain/entities/cart-line'
 import { QuoteLine } from '@features/cart/domain/entities/cart-quote'
@@ -53,23 +56,18 @@ export function CartLineRow({
       className="flex-row gap-3 border-b border-base-200 py-3"
     >
       {line.image ? (
-        <Image
-          accessibilityIgnoresInvertColors
-          source={{ uri: line.image }}
-          resizeMode="cover"
-          className="h-16 w-16 rounded-selector bg-base-200"
-        />
+        <RemoteImage uri={line.image} className="h-16 w-16 rounded-selector bg-base-200" />
       ) : (
         <View className="h-16 w-16 rounded-selector bg-base-200" />
       )}
 
       <View className="flex-1 gap-1.5">
-        <Text numberOfLines={2} className="text-[13px] leading-[18px] text-base-content">
+        <Text numberOfLines={2} variant="label" className="font-light">
           {line.title}
         </Text>
 
         {detail ? (
-          <Text numberOfLines={1} className="text-[11px] text-base-content opacity-60">
+          <Text numberOfLines={1} variant="caption" tone="muted">
             {detail}
           </Text>
         ) : null}
@@ -82,29 +80,38 @@ export function CartLineRow({
           />
           <Text
             testID="cart-line-amount"
-            className={`font-medium text-[15px] text-base-content ${amount ? '' : 'opacity-40'}`}
+            variant="price"
+            tone={amount ? 'default' : 'muted'}
           >
             {amount ?? NO_AMOUNT}
           </Text>
         </View>
 
-        <View className="flex-row items-center gap-4">
+        <View className="flex-row items-center gap-5">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Guardar ${line.title} para más tarde`}
             onPress={(): void => onSaveForLater(line)}
-            className="py-1"
+            hitSlop={6}
+            className="flex-row items-center gap-1.5 py-1"
           >
-            <Text className="text-[11px] text-primary">Guardar para más tarde</Text>
+            <Icon glyph={Bookmark} size="sm" tone="primary" />
+            <Text variant="caption" tone="primary" className="shrink-0">
+              Guardar
+            </Text>
           </Pressable>
 
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Quitar ${line.title} de la cesta`}
             onPress={(): void => onRemove(line)}
-            className="py-1"
+            hitSlop={6}
+            className="flex-row items-center gap-1.5 py-1"
           >
-            <Text className="text-[11px] text-error">Quitar</Text>
+            <Icon glyph={Trash2} size="sm" tone="error" />
+            <Text variant="caption" tone="error" className="shrink-0">
+              Quitar
+            </Text>
           </Pressable>
         </View>
       </View>

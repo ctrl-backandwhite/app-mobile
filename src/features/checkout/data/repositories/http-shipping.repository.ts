@@ -2,10 +2,10 @@ import { AppError } from '@core/errors/app-error'
 import { call } from '@core/http/call'
 import { HttpClient } from '@core/http/http-client'
 import { Result } from '@core/result/result'
-import { Region, ShippingQuote } from '@features/checkout/domain/entities/shipping'
+import { Region, ShippingQuote, SupportedCountry } from '@features/checkout/domain/entities/shipping'
 import { ShippingQuoteQuery, ShippingRepository } from '@features/checkout/domain/ports/shipping-repository'
 
-import { regionListDto, shippingQuoteDto } from '../dto/checkout.dto'
+import { regionListDto, shippingQuoteDto, supportedCountryListDto } from '../dto/checkout.dto'
 import { toShippingQuote } from '../mappers/shipping.mapper'
 
 const CONTRACT = 'La cotización de envío del servidor no tiene el formato esperado.'
@@ -29,6 +29,19 @@ export class HttpShippingRepository implements ShippingRepository {
           couponCode: query.couponCode,
         }),
       (raw) => toShippingQuote(shippingQuoteDto.parse(raw)),
+      CONTRACT,
+    )
+  }
+
+  /** Destinos con cobertura. Los que llegan sin nombre se descartan: no hay nada que enseñar. */
+  async countries(): Promise<Result<SupportedCountry[], AppError>> {
+    return call(
+      () => this.http.get('/shipping/countries'),
+      (raw) =>
+        supportedCountryListDto
+          .parse(raw)
+          .filter((country) => country.countryName.length > 0)
+          .map((country) => ({ code: country.countryCode, name: country.countryName })),
       CONTRACT,
     )
   }

@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { router } from 'expo-router'
+import { Receipt } from 'lucide-react-native'
 import { ReactElement } from 'react'
-import { FlatList, Text } from 'react-native'
+import { FlatList, View } from 'react-native'
 
-import { Screen } from '@ds/components'
+import { Screen, Skeleton, Text } from '@ds/components'
 import { EmptyState } from '@features/catalog/presentation/components'
 import { Order } from '@features/orders/domain/entities/order'
 
@@ -38,7 +39,11 @@ export function OrdersScreen(): ReactElement {
   if (orders.isLoading) {
     return (
       <Screen>
-        <Text className="py-8 text-center text-[13px] text-base-content opacity-60">Cargando…</Text>
+        <View className="gap-3">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </View>
       </Screen>
     )
   }
@@ -60,6 +65,7 @@ export function OrdersScreen(): ReactElement {
     return (
       <Screen>
         <EmptyState
+          icon={Receipt}
           title="Todavía no has hecho ningún pedido"
           message="Cuando hagas tu primera compra, aparecerá aquí."
           actionLabel="Ver el catálogo"
@@ -70,12 +76,21 @@ export function OrdersScreen(): ReactElement {
   }
 
   return (
-    <Screen padded={false}>
+    <Screen padded={false} scroll={false}>
       <FlatList
         data={items}
         keyExtractor={(item): string => item.id}
         contentContainerClassName="gap-3 p-5"
         showsVerticalScrollIndicator={false}
+        // Deslizar para actualizar: el estado de un pedido cambia por su cuenta —lo cambia el
+        // almacén— y sin el gesto la única forma de enterarse era salir de la pantalla y volver.
+        refreshing={orders.isRefetching}
+        onRefresh={(): void => void orders.refetch()}
+        ListHeaderComponent={
+          <Text variant="caption" tone="muted" className="pb-2">
+            {items.length === 1 ? '1 pedido' : `${items.length} pedidos`}
+          </Text>
+        }
         renderItem={({ item }): ReactElement => <OrderCard order={item} onPress={openOrder} />}
       />
     </Screen>

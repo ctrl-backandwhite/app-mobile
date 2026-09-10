@@ -1,9 +1,9 @@
-import { Ionicons } from '@expo/vector-icons'
+import { Heart } from 'lucide-react-native'
 import { ReactElement, useState } from 'react'
 import { Pressable } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { colors } from '@ds/tokens'
+import { useTheme } from '@ds/tokens'
 
 import { useFavoritesStore } from '../state/favorites.store'
 
@@ -25,6 +25,7 @@ export function FavoriteButton({ productId, size = 22 }: Props): ReactElement {
   const mark = useFavoritesStore((state) => state.mark)
   const unmark = useFavoritesStore((state) => state.unmark)
   const [busy, setBusy] = useState(false)
+  const palette = useTheme()
 
   async function press(): Promise<void> {
     if (busy) return
@@ -55,10 +56,13 @@ export function FavoriteButton({ productId, size = 22 }: Props): ReactElement {
       hitSlop={10}
       className="h-9 w-9 items-center justify-center rounded-full bg-base-100/90"
     >
-      <Ionicons
-        name={isFavorite ? 'heart' : 'heart-outline'}
+      {/* Relleno cuando está marcado: el corazón lleno se distingue del vacío de un vistazo, cosa
+          que un simple cambio de color no consigue sobre una foto de cualquier tono. */}
+      <Heart
         size={size}
-        color={isFavorite ? colors.light.error : colors.light.baseContent}
+        strokeWidth={1.5}
+        color={isFavorite ? palette.error : palette.baseContent}
+        fill={isFavorite ? palette.error : 'transparent'}
       />
     </Pressable>
   )

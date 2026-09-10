@@ -1,5 +1,7 @@
 import { ReactElement } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
+
+import { Text } from '@ds/components'
 
 import { PriceTier } from '@features/catalog/domain/entities/product-detail'
 
@@ -31,7 +33,9 @@ export function PriceTierTable({ tiers, highlighted }: Props): ReactElement | nu
 
   return (
     <View className="gap-2">
-      <Text className="text-[12px] text-base-content opacity-70">Precio por cantidad</Text>
+      <Text variant="eyebrow" tone="muted">
+        Precio por cantidad
+      </Text>
 
       <View className="overflow-hidden rounded-box border border-base-300">
         {sorted.map((tier: PriceTier, position: number): ReactElement => {
@@ -47,23 +51,16 @@ export function PriceTierTable({ tiers, highlighted }: Props): ReactElement | nu
               }`}
               className={`flex-row items-center justify-between px-3 py-2.5 ${
                 position > 0 ? 'border-t border-base-300' : ''
-              } ${selected ? 'bg-primary/10' : 'bg-base-100'}`}
+              } ${selected ? 'border-l-4 border-l-accent bg-accent/[0.12]' : 'bg-base-100'}`}
             >
-              <Text
-                className={`text-[13px] ${
-                  selected ? 'font-medium text-primary' : 'text-base-content opacity-70'
-                }`}
-              >
+              {/* El latón marca el tramo que aplica desde el FONDO: comprar más baja el precio y eso
+                  es dinero, no un estado de la interfaz. Lo escrito encima va en tinta, que es lo que
+                  se lee: el latón sobre fondo claro no llega al contraste de un texto pequeño. */}
+              <Text variant="label" tone={selected ? 'default' : 'muted'}>
                 {rangeLabel(tier)}
               </Text>
               {/* El importe llega ya formateado por el backend: aquí no se convierte ni se calcula. */}
-              <Text
-                className={`text-[14px] ${
-                  selected ? 'font-medium text-primary' : 'text-base-content'
-                }`}
-              >
-                {tier.unitPriceFormatted ?? '—'}
-              </Text>
+              <Text variant={selected ? 'price' : 'label'}>{tier.unitPriceFormatted ?? '—'}</Text>
             </View>
           )
         })}

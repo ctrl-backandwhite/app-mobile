@@ -1,5 +1,8 @@
+import { Minus, Plus } from 'lucide-react-native'
 import { ReactElement } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, View } from 'react-native'
+
+import { Icon, Text } from '@ds/components'
 
 interface Props {
   value: number
@@ -25,14 +28,15 @@ export function QuantityStepper({ value, min, onChange }: Props): ReactElement {
             onChange(value - 1)
           }
         }}
-        className="h-full w-11 items-center justify-center"
+        className="h-full w-11 items-center justify-center active:opacity-60"
       >
-        <View className={`h-0.5 w-3.5 ${canDecrease ? 'bg-base-content' : 'bg-base-300'}`} />
+        <Icon glyph={Minus} size="md" tone={canDecrease ? 'default' : 'muted'} />
       </Pressable>
 
       <Text
         accessibilityLabel={`Cantidad: ${value}`}
-        className="min-w-[44px] text-center font-medium text-[15px] text-base-content"
+        variant="heading"
+        className="min-w-[44px] text-center"
       >
         {value}
       </Text>
@@ -41,12 +45,9 @@ export function QuantityStepper({ value, min, onChange }: Props): ReactElement {
         accessibilityRole="button"
         accessibilityLabel="Añadir una unidad"
         onPress={(): void => onChange(value + 1)}
-        className="h-full w-11 items-center justify-center"
+        className="h-full w-11 items-center justify-center active:opacity-60"
       >
-        <View className="h-3.5 w-3.5 items-center justify-center">
-          <View className="absolute h-0.5 w-3.5 bg-base-content" />
-          <View className="absolute h-3.5 w-0.5 bg-base-content" />
-        </View>
+        <Icon glyph={Plus} size="md" />
       </Pressable>
     </View>
   )

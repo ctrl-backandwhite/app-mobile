@@ -1,3 +1,77 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/*
+ * Tema en variables, no en constantes de JavaScript.
+ *
+ * El color vive aquí y en un solo sitio porque NativeWind resuelve las variables en tiempo de
+ * ejecución: al cambiar el sistema a oscuro se repinta la aplicación entera sin que ninguna pantalla
+ * consulte el esquema ni duplique clases con el prefijo `dark:`. Antes cada `text-base-content`
+ * apuntaba al valor claro escrito a fuego, de modo que la aplicación se declaraba «automática» y
+ * salía siempre en claro.
+ *
+ * Los valores van en canales sueltos —«0 80 178» y no «#0050b2»— para que Tailwind pueda componer
+ * `rgb(... / <alpha-value>)` y las opacidades (`text-base-content/60`) sigan funcionando.
+ *
+ * SON LOS DEL ESCAPARATE CON MÁS VIDA. Mismo tono —el cobalto sigue siendo cobalto y el latón,
+ * latón—, pero con la saturación subida: la paleta del web nació para pantallas de escritorio y en un
+ * móvil, junto a fotos de producto a todo color, se leía apagada para una tienda. La luminosidad
+ * apenas se toca, que es lo que mantiene el contraste: aclarar habría dejado el verde y el rojo por
+ * debajo del mínimo que necesita un texto pequeño.
+ */
+@layer base {
+  :root {
+    --color-primary: 0 80 178;
+    --color-primary-content: 238 244 252;
+    --color-secondary: 12 58 86;
+    --color-secondary-content: 234 241 246;
+    --color-accent: 220 140 17;
+    --color-accent-content: 33 21 5;
+
+    --color-base-100: 252 253 254;
+    --color-base-200: 244 246 249;
+    --color-base-300: 227 232 239;
+    --color-base-content: 20 33 46;
+
+    /* Tinta media del escritorio (`--color-ink-500`): el texto auxiliar tiene color propio en lugar
+       de resolverse con opacidad, que apaga por igual iconos, bordes y todo lo que cuelgue debajo. */
+    --color-muted: 92 110 124;
+
+    --color-info: 28 119 165;
+    --color-success: 15 127 91;
+    --color-success-content: 239 247 242;
+    --color-warning: 247 157 13;
+    --color-warning-content: 36 23 4;
+    --color-error: 207 58 24;
+    --color-error-content: 251 240 236;
+  }
+
+  /* El oscuro sigue el mismo criterio: se sube la saturación y se deja la luminosidad, que aquí es
+     lo que separa cada color del marino del fondo. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-primary: 44 146 255;
+      --color-primary-content: 3 18 31;
+      --color-secondary: 27 92 141;
+      --color-secondary-content: 234 241 246;
+      --color-accent: 239 162 37;
+      --color-accent-content: 30 19 5;
+
+      --color-base-100: 14 26 38;
+      --color-base-200: 20 36 52;
+      --color-base-300: 30 49 67;
+      --color-base-content: 231 238 243;
+
+      --color-muted: 143 163 177;
+
+      --color-info: 49 149 195;
+      --color-success: 25 165 119;
+      --color-success-content: 5 20 15;
+      --color-warning: 251 174 31;
+      --color-warning-content: 30 19 5;
+      --color-error: 232 72 36;
+      --color-error-content: 31 10 5;
+    }
+  }
+}

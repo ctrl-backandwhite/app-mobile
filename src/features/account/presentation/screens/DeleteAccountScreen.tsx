@@ -1,9 +1,9 @@
 import { router } from 'expo-router'
 import { ReactElement, useState } from 'react'
-import { ScrollView, Text, View } from 'react-native'
+import { ScrollView, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { Alert, Button, Card, Screen, TextField } from '@ds/components'
+import { Alert, Button, Card, Screen, Text, TextField } from '@ds/components'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 
 const CONSECUENCIAS = [
@@ -69,10 +69,10 @@ export function DeleteAccountScreen(): ReactElement {
         <Alert variant="warning" message="Esta acción no se puede deshacer." />
 
         <Card>
-          <Text className="mb-2 font-medium text-[15px] text-base-content">Qué va a pasar</Text>
+          <Text variant="heading" className="mb-2">Qué va a pasar</Text>
           <View className="gap-2">
             {CONSECUENCIAS.map((linea) => (
-              <Text key={linea} className="text-[13px] text-base-content opacity-80">
+              <Text key={linea} variant="label" tone="muted">
                 {`· ${linea}`}
               </Text>
             ))}
@@ -83,7 +83,7 @@ export function DeleteAccountScreen(): ReactElement {
 
         {pedido ? (
           <Card>
-            <Text className="mb-3 text-[13px] text-base-content opacity-80">
+            <Text variant="label" tone="muted" className="mb-3">
               Te hemos enviado un código al correo de la cuenta. Escríbelo para confirmar.
             </Text>
             <View className="gap-3">

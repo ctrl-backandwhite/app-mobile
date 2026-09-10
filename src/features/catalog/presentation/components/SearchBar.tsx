@@ -1,7 +1,9 @@
+import { Search, X } from 'lucide-react-native'
 import { ReactElement } from 'react'
-import { TextInput, View } from 'react-native'
+import { Pressable, TextInput, View } from 'react-native'
 
-import { colors } from '@ds/tokens'
+import { Icon } from '@ds/components'
+import { useTheme } from '@ds/tokens'
 
 interface Props {
   value: string
@@ -10,42 +12,41 @@ interface Props {
   placeholder?: string
 }
 
-/** Lupa dibujada con vistas, como el ojo de `PasswordField`: no hay familia de iconos instalada. */
-function SearchMark(): ReactElement {
-  return (
-    <View className="h-4 w-4 opacity-60">
-      <View className="absolute left-0 top-0 h-3 w-3 rounded-full border border-base-content" />
-      {/* Giro negativo: una línea vertical girada −45° apunta abajo a la derecha, que es el mango. */}
-      <View className="absolute bottom-0 right-0 h-[7px] w-px -rotate-45 bg-base-content" />
-    </View>
-  )
-}
-
 export function SearchBar({
   value,
   onChangeText,
   onSubmit,
   placeholder = 'Buscar productos',
 }: Props): ReactElement {
+  const palette = useTheme()
+
   return (
-    <View>
+    <View className="h-12 flex-row items-center gap-2 rounded-field border border-base-300 bg-base-100 px-3">
+      <Icon glyph={Search} size="md" tone="muted" />
       <TextInput
         accessibilityLabel="Buscar productos"
         value={value}
         onChangeText={onChangeText}
         onSubmitEditing={onSubmit}
         placeholder={placeholder}
-        placeholderTextColor={colors.placeholder}
+        placeholderTextColor={palette.muted}
         returnKeyType="search"
         autoCapitalize="none"
         autoCorrect={false}
-        // El texto no puede pasar por debajo de la lupa; el resto del estilo va por className.
-        style={{ paddingLeft: 38 }}
-        className="h-12 rounded-field border border-base-300 bg-base-100 pr-3 text-[15px] text-base-content"
+        className="h-12 flex-1 font-light text-body text-base-content"
       />
-      <View className="absolute bottom-0 left-3 top-0 justify-center">
-        <SearchMark />
-      </View>
+      {/* Vaciar la búsqueda sin borrar letra a letra: con el teclado abierto es la diferencia entre
+          un toque y quince. */}
+      {value.length > 0 ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Borrar la búsqueda"
+          onPress={() => onChangeText('')}
+          hitSlop={8}
+        >
+          <Icon glyph={X} size="md" tone="muted" />
+        </Pressable>
+      ) : null}
     </View>
   )
 }

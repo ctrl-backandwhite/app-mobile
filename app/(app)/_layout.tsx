@@ -1,16 +1,40 @@
 import { Redirect, Stack } from 'expo-router'
 import { ReactElement } from 'react'
 
+import { fontFamily, useTheme } from '@ds/tokens'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 
 /** Guarda de la zona con sesión: sin ella, al acceso. */
 export default function AppLayout(): ReactElement {
   const status = useSessionStore((state) => state.status)
+  const palette = useTheme()
 
   if (status === 'anonymous') return <Redirect href="/login" />
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        /*
+         * La cabecera del navegador con la ropa de la marca.
+         *
+         * Sin esto salía con la tipografía del sistema y sobre blanco, mientras el resto de la
+         * pantalla iba en Roboto sobre el gris del escaparate: la barra se veía pegada, de otra
+         * aplicación. Va del mismo gris que el cuerpo y sin sombra, así que cabecera y contenido son
+         * una sola superficie.
+         */
+        headerStyle: { backgroundColor: palette.base200 },
+        headerShadowVisible: false,
+        headerTintColor: palette.baseContent,
+        headerTitleStyle: {
+          fontFamily: fontFamily.medium,
+          fontSize: 17,
+          color: palette.baseContent,
+        },
+        headerBackButtonDisplayMode: 'minimal',
+        contentStyle: { backgroundColor: palette.base200 },
+      }}
+    >
       <Stack.Screen name="(tabs)" />
       {/*
         La ficha NO lleva cabecera: la galería sube hasta el borde de la pantalla y una barra encima
@@ -44,11 +68,15 @@ export default function AppLayout(): ReactElement {
         name="settings/region"
         options={{ headerShown: true, title: 'Idioma y divisa' }}
       />
-      <Stack.Screen name="settings/security" options={{ headerShown: true, title: 'Seguridad' }} />
       <Stack.Screen
-        name="settings/subscription"
-        options={{ headerShown: true, title: 'Mi plan' }}
+        name="settings/addresses"
+        options={{ headerShown: true, title: 'Direcciones' }}
       />
+      <Stack.Screen
+        name="settings/viewed"
+        options={{ headerShown: true, title: 'Lo que has visto' }}
+      />
+      <Stack.Screen name="settings/security" options={{ headerShown: true, title: 'Seguridad' }} />
       <Stack.Screen
         name="settings/delete-account"
         options={{ headerShown: true, title: 'Eliminar mi cuenta' }}

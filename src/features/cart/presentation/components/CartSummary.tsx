@@ -1,7 +1,8 @@
+import { ArrowRight } from 'lucide-react-native'
 import { ReactElement } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
-import { Button } from '@ds/components'
+import { Button, Text } from '@ds/components'
 import { CartQuote } from '@features/cart/domain/entities/cart-quote'
 
 interface Props {
@@ -34,20 +35,23 @@ export function CartSummary({
     <View testID="cart-summary" className="gap-3 border-t border-base-300 bg-base-100 px-4 pb-4 pt-3">
       <View className="flex-row items-end justify-between gap-3">
         <View className="gap-0.5">
-          <Text className="text-[11px] text-base-content opacity-60">Subtotal</Text>
-          <Text accessibilityLabel={units} className="text-[12px] text-base-content opacity-70">
+          <Text variant="eyebrow" tone="muted">
+            Subtotal
+          </Text>
+          <Text accessibilityLabel={units} variant="caption" tone="muted">
             {units}
           </Text>
         </View>
         <Text
           testID="cart-summary-subtotal"
-          className={`font-medium text-[22px] text-base-content ${subtotal ? '' : 'opacity-40'}`}
+          variant="title"
+          tone={subtotal ? 'default' : 'muted'}
         >
           {subtotal ?? NO_AMOUNT}
         </Text>
       </View>
 
-      <Button title="Tramitar pedido" onPress={onCheckout} disabled={inert} />
+      <Button title="Tramitar pedido" onPress={onCheckout} disabled={inert} trailingIcon={ArrowRight} />
     </View>
   )
 }

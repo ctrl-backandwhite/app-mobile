@@ -1,5 +1,7 @@
 import { ReactElement, ReactNode } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, View } from 'react-native'
+
+import { Text } from '@ds/components'
 
 import {
   expiryLabel,
@@ -48,10 +50,10 @@ function Option({
         selected ? 'border-primary bg-primary/10' : 'border-base-300 bg-base-100'
       } ${disabled ? 'opacity-60' : ''}`}
     >
-      <Text className={`text-[13px] ${selected ? 'font-medium text-primary' : 'text-base-content'}`}>
+      <Text variant="label" tone={selected ? 'primary' : 'default'}>
         {label}
       </Text>
-      {hint ? <Text className="mt-0.5 text-[11px] text-base-content opacity-60">{hint}</Text> : null}
+      {hint ? <Text variant="caption" tone="muted" className="mt-0.5">{hint}</Text> : null}
       {children}
     </Pressable>
   )
@@ -77,10 +79,10 @@ export function PaymentPicker({
 
   return (
     <View className="gap-2" testID="payment-picker">
-      <Text className="text-[13px] font-medium text-base-content">Método de pago</Text>
+      <Text variant="label">Método de pago</Text>
 
       {loading ? (
-        <Text className="py-2 text-[12px] text-base-content opacity-60">Cargando métodos…</Text>
+        <Text variant="caption" tone="muted" className="py-2">Cargando métodos…</Text>
       ) : null}
 
       {methods.map((method) => (
@@ -100,10 +102,8 @@ export function PaymentPicker({
         onPress={(): void => onSelect({ kind: 'WALLET' })}
       >
         {!walletEnough ? (
-          <Text
-            accessibilityRole="alert"
-            className="mt-1 text-[11px] text-warning"
-          >
+          <Text accessibilityRole="alert"
+      variant="caption" tone="error" className="mt-1">
             {CHECKOUT_MESSAGES.insufficientWallet}
           </Text>
         ) : null}
@@ -122,7 +122,7 @@ export function PaymentPicker({
         onPress={onAddCard}
         className="rounded-field border border-dashed border-base-300 p-3"
       >
-        <Text className="text-[13px] text-primary">Añadir tarjeta</Text>
+        <Text variant="label" tone="primary">Añadir tarjeta</Text>
       </Pressable>
     </View>
   )

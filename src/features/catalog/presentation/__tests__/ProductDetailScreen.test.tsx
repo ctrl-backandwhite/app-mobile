@@ -20,6 +20,8 @@ function container(overrides: Record<string, unknown> = {}) {
     listReviews: { execute: jest.fn().mockResolvedValue(ok(aPage([]))) },
     listRelatedProducts: { execute: jest.fn().mockResolvedValue(ok([])) },
     toggleFavorite: { execute: jest.fn().mockResolvedValue(ok(true)) },
+    // La ficha lee la cesta para poner al día el distintivo de la pestaña al añadir.
+    loadCart: { execute: jest.fn().mockResolvedValue([]) },
     ...overrides,
   }
 }
@@ -45,7 +47,10 @@ describe('ProductDetailScreen', () => {
     )
 
     expect(await screen.findByText('Camisa de lino')).toBeTruthy()
-    expect(screen.getByText('12,90 €')).toBeTruthy()
+    // Dos veces: en el bloque de precio y en la barra de compra fija, que acompaña mientras se baja
+    // por la ficha —galería, variantes, tramos, opiniones— y donde el precio tiene que seguir a la
+    // vista junto al botón.
+    expect(screen.getAllByText('12,90 €')).toHaveLength(2)
   })
 
   it('muestra el precio de la variante elegida, no el del producto', async () => {
@@ -63,7 +68,7 @@ describe('ProductDetailScreen', () => {
 
     await fireEvent.press(await screen.findByText('Azul'))
 
-    await waitFor(() => expect(screen.getByText('15,50 €')).toBeTruthy())
+    await waitFor(() => expect(screen.getAllByText('15,50 €')).toHaveLength(2))
     expect(screen.queryByText('12,90 €')).toBeNull()
   })
 

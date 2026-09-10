@@ -234,6 +234,21 @@ export function isSelectionUnavailable(
  * título del producto, así que la cesta enseñaba el nombre del artículo por segunda vez y no decía
  * en ningún sitio qué color se había comprado.
  */
+/**
+ * La primera variante que se puede comprar hoy.
+ *
+ * <p>Es lo que necesita la compra rápida desde una tarjeta, donde nadie ha elegido nada: en lugar de
+ * guardar la línea SIN variante —que deja en la cesta algo que el pedido no sabe servir— se toma la
+ * primera activa con existencias, igual que hace el escaparate.
+ *
+ * <p>Devuelve `undefined` cuando el producto no tiene ejes: entonces no hay nada que elegir y la
+ * línea va sin variante, que es lo correcto. Y devuelve `undefined` también si NINGUNA sirve; quien
+ * llama distingue los dos casos mirando si el producto tiene ejes.
+ */
+export function firstAvailableVariant(detail: ProductDetail): ProductVariant | undefined {
+  return detail.variants.find((variant) => variant.active && variant.stock > 0)
+}
+
 export function variantLabelOf(variant: ProductVariant | undefined): string | undefined {
   if (!variant) return undefined
   const parts = Object.values(variant.options).filter((value) => value.trim().length > 0)

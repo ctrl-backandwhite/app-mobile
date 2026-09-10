@@ -15,6 +15,10 @@ export interface ProductSummary {
   readonly mainImage?: string
   readonly rating?: number
   readonly monthlySales: number
+  /** La tienda asume el arancel de este producto. En la Unión es lo que evita la sorpresa al recibir. */
+  readonly dutyCovered: boolean
+  /** La tienda pone parte del porte. Se aplica vaya el pedido a donde vaya. */
+  readonly shippingCovered: boolean
   readonly trendScore?: number
   readonly status: string
   /** Precio final ya formateado por el backend, con el descuento aplicado si lo hay. */

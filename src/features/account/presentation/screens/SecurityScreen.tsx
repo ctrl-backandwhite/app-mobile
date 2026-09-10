@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { router } from 'expo-router'
+import { Lock, Trash2 } from 'lucide-react-native'
 import { ReactElement, useState } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { Alert, Button, Card, PasswordField, Screen } from '@ds/components'
+import { Alert, Button, Card, ListRow, PasswordField, Screen, Spinner, Text } from '@ds/components'
 import { ActiveSession } from '@features/account/domain/entities/active-session'
 import { checkPassword } from '@features/auth/domain/policies/password-policy'
 import { PasswordRequirements } from '@features/auth/presentation/components/PasswordRequirements'
@@ -83,12 +84,16 @@ export function SecurityScreen(): ReactElement {
   return (
     <Screen padded={false}>
       <ScrollView contentContainerClassName="gap-4 p-5">
+        <Text variant="caption" tone="muted" className="mb-2">
+          Contraseña, sesiones abiertas y borrado de cuenta.
+        </Text>
         <Card>
-          <Text className="mb-3 font-medium text-[15px] text-base-content">Cambiar contraseña</Text>
+          <Text variant="heading" className="mb-3">Cambiar contraseña</Text>
 
           <View className="gap-3">
             <PasswordField
               label="Contraseña actual"
+              icon={Lock}
               testID="contrasena-actual"
               value={actual}
               onChangeText={setActual}
@@ -96,6 +101,7 @@ export function SecurityScreen(): ReactElement {
             />
             <PasswordField
               label="Contraseña nueva"
+              icon={Lock}
               testID="contrasena-nueva"
               value={nueva}
               onChangeText={setNueva}
@@ -104,6 +110,7 @@ export function SecurityScreen(): ReactElement {
             <PasswordRequirements value={nueva} />
             <PasswordField
               label="Repite la contraseña nueva"
+              icon={Lock}
               testID="contrasena-repetida"
               value={repetida}
               onChangeText={setRepetida}
@@ -124,36 +131,28 @@ export function SecurityScreen(): ReactElement {
         </Card>
 
         <Card>
-          <Text className="mb-1 font-medium text-[15px] text-base-content">Eliminar mi cuenta</Text>
-          <Text className="mb-3 text-[12px] text-base-content opacity-60">
-            Se borran tus datos personales y no se puede deshacer.
-          </Text>
-          <Button
-            testID="ir-a-borrar-cuenta"
-            title="Eliminar mi cuenta"
-            variant="outline"
-            onPress={() => router.push('/settings/delete-account')}
-          />
-        </Card>
-        <Card>
-          <Text className="mb-1 font-medium text-[15px] text-base-content">Sesiones abiertas</Text>
-          <Text className="mb-3 text-[12px] text-base-content opacity-60">
+          <Text variant="heading" className="mb-1">Sesiones abiertas</Text>
+          <Text variant="caption" tone="muted" className="mb-3">
             Si no reconoces alguna, ciérrala y cambia la contraseña.
           </Text>
 
-          {sesiones.isLoading ? <ActivityIndicator testID="cargando-sesiones" /> : null}
+          {sesiones.isLoading ? <Spinner testID="cargando-sesiones" className="py-4" /> : null}
           {sesiones.isError ? (
             <Alert variant="error" message="No se han podido cargar tus sesiones." />
           ) : null}
 
-          {(todasLasSesiones ? abiertas : abiertas.slice(0, SESIONES_VISIBLES)).map((sesion) => (
-            <Sesion
-              key={sesion.id}
-              sesion={sesion}
-              cerrando={cierre.isPending && cierre.variables === sesion.id}
-              onCerrar={() => cierre.mutate(sesion.id)}
-            />
-          ))}
+          {(todasLasSesiones ? abiertas : abiertas.slice(0, SESIONES_VISIBLES)).map(
+            (sesion, indice, lista) => (
+              <Sesion
+                key={sesion.id}
+                sesion={sesion}
+                // Con el enlace de «ver las restantes» debajo, la última fila sí cierra con línea.
+                ultima={indice === lista.length - 1 && ocultas === 0}
+                cerrando={cierre.isPending && cierre.variables === sesion.id}
+                onCerrar={() => cierre.mutate(sesion.id)}
+              />
+            ),
+          )}
 
           {!todasLasSesiones && ocultas > 0 ? (
             <Pressable
@@ -162,13 +161,29 @@ export function SecurityScreen(): ReactElement {
               onPress={() => setTodasLasSesiones(true)}
               className="min-h-11 justify-center"
             >
-              <Text className="text-[13px] text-primary">
+              <Text variant="label" tone="primary">
                 Ver las {ocultas} sesiones restantes
               </Text>
             </Pressable>
           ) : null}
         </Card>
 
+        {/*
+          Como fila y no como tarjeta con botón: el rótulo salía dos veces —de título y de botón— y
+          un botón rojo suelto al final de la pantalla pesaba más que cambiar la contraseña, que es a
+          lo que se entra aquí. Sigue estando, en rojo y con su aviso, pero sin gritar.
+        */}
+        <Card padding="none" className="px-5">
+          <ListRow
+            testID="ir-a-borrar-cuenta"
+            icon={Trash2}
+            danger
+            last
+            title="Eliminar mi cuenta"
+            description="Se borran tus datos personales y no se puede deshacer."
+            onPress={() => router.push('/settings/delete-account')}
+          />
+        </Card>
       </ScrollView>
     </Screen>
   )
@@ -176,6 +191,8 @@ export function SecurityScreen(): ReactElement {
 
 interface SesionProps {
   sesion: ActiveSession
+  /** La última del grupo no dibuja separador: la tarjeta ya cierra por debajo. */
+  ultima: boolean
   cerrando: boolean
   onCerrar: () => void
 }
@@ -184,22 +201,26 @@ interface SesionProps {
  * La sesión de este teléfono se marca y NO se ofrece cerrar: para eso está «Cerrar sesión» en la
  * pestaña de cuenta, y un botón aquí que expulsa a quien lo pulsa se lee como un fallo.
  */
-function Sesion({ sesion, cerrando, onCerrar }: SesionProps): ReactElement {
+function Sesion({ sesion, ultima, cerrando, onCerrar }: SesionProps): ReactElement {
   return (
     <View
       testID={`sesion-${sesion.id}`}
-      className="flex-row items-center justify-between border-b border-base-300 py-3"
+      className={`flex-row items-center justify-between py-3 ${
+        ultima ? '' : 'border-b border-base-200'
+      }`}
     >
       <View className="flex-1 pr-3">
-        <Text className="font-medium text-[14px] text-base-content" numberOfLines={1}>
+        <Text variant="label" numberOfLines={1}>
           {sesion.device}
         </Text>
-        <Text className="mt-0.5 text-[12px] text-base-content opacity-60">
+        <Text variant="caption" tone="muted" className="mt-0.5">
           {sesion.ip.length > 0 ? sesion.ip : 'Sin dirección registrada'}
         </Text>
       </View>
       {sesion.current ? (
-        <Text className="text-[12px] text-primary">Este dispositivo</Text>
+        <Text variant="caption" tone="primary" className="shrink-0">
+          Este dispositivo
+        </Text>
       ) : (
         <Pressable
           testID={`cerrar-sesion-${sesion.id}`}
@@ -209,7 +230,9 @@ function Sesion({ sesion, cerrando, onCerrar }: SesionProps): ReactElement {
           disabled={cerrando}
           hitSlop={8}
         >
-          <Text className="text-[13px] text-error">{cerrando ? 'Cerrando…' : 'Cerrar'}</Text>
+          <Text variant="label" tone="error" className="shrink-0">
+            {cerrando ? 'Cerrando…' : 'Cerrar'}
+          </Text>
         </Pressable>
       )}
     </View>

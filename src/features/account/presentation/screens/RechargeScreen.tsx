@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { ReactElement, useState } from 'react'
-import { Pressable, ScrollView, Text, View } from 'react-native'
+import { Pressable, ScrollView, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { Alert, Button, Card, Screen, TextField } from '@ds/components'
+import { Alert, Button, Card, OptionRow, Screen, Text, TextField } from '@ds/components'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 import { RechargeMethod } from '@features/checkout/domain/entities/wallet-recharge'
 
@@ -74,8 +74,8 @@ export function RechargeScreen(): ReactElement {
     <Screen padded={false}>
       <ScrollView contentContainerClassName="gap-4 p-5">
         <Card>
-          <Text className="mb-1 font-medium text-[15px] text-base-content">Cuánto quieres añadir</Text>
-          <Text className="mb-3 text-[12px] text-base-content opacity-60">
+          <Text variant="heading" className="mb-1">Cuánto quieres añadir</Text>
+          <Text variant="caption" tone="muted" className="mb-3">
             {`El cargo se hace en ${currency}, la divisa que tienes puesta.`}
           </Text>
 
@@ -94,7 +94,7 @@ export function RechargeScreen(): ReactElement {
                       : 'border-base-300 bg-base-100'
                   }`}
                 >
-                  <Text className="text-[14px] text-base-content">{preset.formatted}</Text>
+                  <Text variant="label">{preset.formatted}</Text>
                 </Pressable>
               ))}
             </View>
@@ -111,22 +111,17 @@ export function RechargeScreen(): ReactElement {
         </Card>
 
         <Card>
-          <Text className="mb-3 font-medium text-[15px] text-base-content">Cómo lo pagas</Text>
-          {METODOS.map((opcion) => (
-            <Pressable
+          <Text variant="heading" className="mb-3">Cómo lo pagas</Text>
+          {METODOS.map((opcion, indice) => (
+            <OptionRow
               key={opcion.valor}
               testID={`metodo-${opcion.valor}`}
-              accessibilityRole="radio"
-              accessibilityState={{ selected: metodo === opcion.valor }}
+              label={opcion.etiqueta}
+              description={opcion.detalle}
+              selected={metodo === opcion.valor}
+              last={indice === METODOS.length - 1}
               onPress={(): void => setMetodo(opcion.valor)}
-              className="min-h-11 flex-row items-center justify-between border-b border-base-300 py-3"
-            >
-              <View className="flex-1 pr-3">
-                <Text className="font-medium text-[14px] text-base-content">{opcion.etiqueta}</Text>
-                <Text className="text-[12px] text-base-content opacity-60">{opcion.detalle}</Text>
-              </View>
-              {metodo === opcion.valor ? <Text className="text-[15px] text-primary">✓</Text> : null}
-            </Pressable>
+            />
           ))}
         </Card>
 
@@ -144,7 +139,7 @@ export function RechargeScreen(): ReactElement {
         />
 
         {/* Que la pasarela devuelva algo no significa que el dinero se haya movido: lo cierra el servidor. */}
-        <Text className="text-center text-[12px] text-base-content opacity-60">
+        <Text variant="caption" tone="muted" className="text-center">
           El saldo se actualiza cuando el pago queda confirmado.
         </Text>
       </ScrollView>

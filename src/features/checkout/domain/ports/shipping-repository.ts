@@ -2,7 +2,7 @@ import { AppError } from '@core/errors/app-error'
 import { Result } from '@core/result/result'
 
 import { CheckoutItem } from '../entities/checkout-draft'
-import { Region, ShippingQuote } from '../entities/shipping'
+import { Region, ShippingQuote, SupportedCountry } from '../entities/shipping'
 
 /** Lo que hace falta para cotizar: a dónde va, qué lleva y qué cupón se ha tecleado. */
 export interface ShippingQuoteQuery {
@@ -22,4 +22,5 @@ export interface ShippingQuoteQuery {
 export interface ShippingRepository {
   quote(query: ShippingQuoteQuery): Promise<Result<ShippingQuote, AppError>>
   regions(country: string): Promise<Result<Region[], AppError>>
+  countries(): Promise<Result<SupportedCountry[], AppError>>
 }

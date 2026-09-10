@@ -1,5 +1,6 @@
 const { withAndroidManifest, withDangerousMod } = require('expo/config-plugins');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 /**
@@ -22,13 +23,40 @@ const DOMINIOS_DE_DESARROLLO = [
   '127.0.0.1',
 ];
 
+/**
+ * Direcciones de esta máquina en la red local.
+ *
+ * <p>Hacen falta porque hay servicios de desarrollo a los que NO se llega por `10.0.2.2`: las fotos
+ * de producto se sirven con una dirección que tiene que valer a la vez para el navegador del
+ * escritorio y para el emulador, y esa solo puede ser la de la máquina en la red. Sin esta excepción
+ * Android corta la descarga en silencio y el catálogo sale sin una sola foto —lo que parece un fallo
+ * de la aplicación y no lo es—.
+ *
+ * <p>Se calculan al compilar en lugar de escribirse a mano: la dirección cambia de una red a otra, y
+ * una lista fija obligaría a editar este fichero cada vez.
+ *
+ * <p>NO entran en la compilación de producción: allí todo va por HTTPS y meter la dirección privada
+ * de la máquina que compiló solo sería ruido dentro del paquete publicado.
+ */
+function direccionesDeLaRedLocal() {
+  if (process.env.EAS_BUILD_PROFILE === 'production') {
+    return [];
+  }
+  return Object.values(os.networkInterfaces())
+    .flat()
+    .filter((interfaz) => interfaz && interfaz.family === 'IPv4' && !interfaz.internal)
+    .map((interfaz) => interfaz.address);
+}
+
+const DOMINIOS = [...DOMINIOS_DE_DESARROLLO, ...direccionesDeLaRedLocal()];
+
 const CONFIGURACION = `<?xml version="1.0" encoding="utf-8"?>
 <!--
   Generado por plugins/con-desarrollo-en-claro.js. No editar a mano: se reescribe en cada prebuild.
 -->
 <network-security-config>
   <domain-config cleartextTrafficPermitted="true">
-${DOMINIOS_DE_DESARROLLO.map((d) => `    <domain includeSubdomains="false">${d}</domain>`).join('\n')}
+${DOMINIOS.map((d) => `    <domain includeSubdomains="false">${d}</domain>`).join('\n')}
   </domain-config>
 </network-security-config>
 `;

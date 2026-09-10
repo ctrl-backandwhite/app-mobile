@@ -23,8 +23,11 @@ describe('ActivateScreen', () => {
     await fireEvent.press(screen.getByText('Activar cuenta'))
 
     await waitFor(() => expect(activateAccount.execute).toHaveBeenCalledWith('123456'))
-    expect(await screen.findByText('Cuenta activada. Ya puedes iniciar sesión.')).toBeTruthy()
-    expect(global.routerMock.replace).toHaveBeenCalledWith('/login')
+    // El «cuenta activada» lo da el acceso, no esta pantalla: aquí solo se pasa la llave del aviso.
+    expect(global.routerMock.replace).toHaveBeenCalledWith({
+      pathname: '/login',
+      params: { aviso: 'activada' },
+    })
   })
 
   it('muestra el mensaje del backend cuando el código es erróneo', async () => {

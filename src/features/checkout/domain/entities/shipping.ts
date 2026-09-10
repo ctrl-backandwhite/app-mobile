@@ -47,6 +47,18 @@ export interface Region {
 }
 
 /**
+ * País al que el transportista SÍ llega, con su nombre ya traducido por el servidor.
+ *
+ * <p>No es una lista de países del mundo: es la cobertura real contratada. Por eso se pide y no se
+ * escribe aquí —una lista propia dejaría elegir un destino que luego no se puede cotizar, y el
+ * comprador se enteraría al final, con la dirección ya guardada.
+ */
+export interface SupportedCountry {
+  readonly code: string
+  readonly name: string
+}
+
+/**
  * Si la cotización IMPIDE comprar.
  *
  * Que aún no haya cotización no impide nada: mientras va y viene, la compra sigue su curso y es el

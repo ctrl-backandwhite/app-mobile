@@ -1,5 +1,7 @@
 import { ReactElement } from 'react'
-import { Image, Pressable, Text, View } from 'react-native'
+import { Pressable, View } from 'react-native'
+
+import { RemoteImage, Text } from '@ds/components'
 
 import {
   VariantOption,
@@ -32,9 +34,9 @@ export function VariantSelector({ options, selection, onSelect }: Props): ReactE
         return (
           <View key={option.id} className="gap-2">
             <View className="flex-row items-center gap-1.5">
-              <Text className="text-[13px] text-base-content opacity-70">{option.name}</Text>
+              <Text variant="label" tone="muted">{option.name}</Text>
               {chosen ? (
-                <Text className="font-medium text-[13px] text-base-content">{chosen}</Text>
+                <Text variant="label">{chosen}</Text>
               ) : null}
             </View>
 
@@ -52,12 +54,7 @@ export function VariantSelector({ options, selection, onSelect }: Props): ReactE
                     onPress={(): void => onSelect(option.name, value.value)}
                     className={`h-16 w-16 overflow-hidden rounded-selector bg-base-200 ${frame}`}
                   >
-                    <Image
-                      accessibilityIgnoresInvertColors
-                      source={{ uri: value.imageUrl }}
-                      resizeMode="cover"
-                      className="h-full w-full"
-                    />
+                    <RemoteImage uri={value.imageUrl} className="h-full w-full" />
                   </Pressable>
                 ) : (
                   <Pressable
@@ -68,11 +65,7 @@ export function VariantSelector({ options, selection, onSelect }: Props): ReactE
                     onPress={(): void => onSelect(option.name, value.value)}
                     className={`h-10 min-w-[44px] items-center justify-center rounded-selector bg-base-100 px-3 ${frame}`}
                   >
-                    <Text
-                      className={`text-[13px] ${
-                        selected ? 'font-medium text-primary' : 'text-base-content'
-                      }`}
-                    >
+                    <Text variant="label" tone={selected ? 'primary' : 'default'}>
                       {value.value}
                     </Text>
                   </Pressable>

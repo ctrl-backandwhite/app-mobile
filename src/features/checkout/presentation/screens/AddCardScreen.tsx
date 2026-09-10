@@ -2,10 +2,10 @@ import { CardField, CardFieldInput } from '@stripe/stripe-react-native'
 import { useQueryClient } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { ReactElement, useCallback, useState } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
-import { Alert, Button, Screen, TextField } from '@ds/components'
-import { colors } from '@ds/tokens'
+import { Alert, Button, Screen, Text, TextField } from '@ds/components'
+import { Palette, useTheme } from '@ds/tokens'
 import { acceptsCards } from '@features/checkout/domain/entities/billing-config'
 import { checkoutErrorMessage } from '@features/checkout/domain/policies/checkout-errors'
 
@@ -18,12 +18,15 @@ import { useCheckoutDeps } from '../hooks/use-checkout-deps'
  */
 const FIELD_SIZE = { width: '100%', height: 46 } as const
 
-const FIELD_COLORS: CardFieldInput.Styles = {
-  backgroundColor: colors.light.base100,
-  textColor: colors.light.baseContent,
-  placeholderColor: colors.placeholder,
-  textErrorColor: colors.light.error,
-  fontSize: 15,
+/** El formulario nativo no ve el tema, así que sus colores se recalculan al cambiar el esquema. */
+function fieldColors(palette: Palette): CardFieldInput.Styles {
+  return {
+    backgroundColor: palette.base100,
+    textColor: palette.baseContent,
+    placeholderColor: palette.muted,
+    textErrorColor: palette.error,
+    fontSize: 15,
+  }
 }
 
 const UNAVAILABLE = 'El pago con tarjeta no está disponible ahora mismo. Inténtalo más tarde.'
@@ -39,6 +42,7 @@ export function AddCardScreen(): ReactElement {
   const { addCard } = useCheckoutDeps()
   const queryClient = useQueryClient()
   const config = useBillingConfig()
+  const palette = useTheme()
 
   const [holder, setHolder] = useState('')
   const [cardComplete, setCardComplete] = useState(false)
@@ -70,7 +74,7 @@ export function AddCardScreen(): ReactElement {
     <Screen>
       <View className="gap-4 pb-6">
         {config.isLoading ? (
-          <Text className="text-[13px] text-base-content opacity-70">
+          <Text variant="label" tone="muted">
             Preparando el formulario de pago…
           </Text>
         ) : null}
@@ -91,7 +95,7 @@ export function AddCardScreen(): ReactElement {
             />
 
             <View className="gap-1">
-              <Text className="text-[13px] text-base-content opacity-80">Datos de la tarjeta</Text>
+              <Text variant="label" tone="muted">Datos de la tarjeta</Text>
               <View className="rounded-field border border-base-300 bg-base-100 px-2">
                 <CardField
                   accessibilityLabel="Datos de la tarjeta"
@@ -99,7 +103,7 @@ export function AddCardScreen(): ReactElement {
                   // formulario sin aportar nada, igual que en el panel web.
                   postalCodeEnabled={false}
                   style={FIELD_SIZE}
-                  cardStyle={FIELD_COLORS}
+                  cardStyle={fieldColors(palette)}
                   onCardChange={(details: CardFieldInput.Details): void =>
                     setCardComplete(details.complete)
                   }

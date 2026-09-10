@@ -1,5 +1,7 @@
 import { ReactElement } from 'react'
-import { Pressable, ScrollView, Text } from 'react-native'
+import { ScrollView } from 'react-native'
+
+import { Chip } from '@ds/components'
 
 /**
  * Lo mínimo que la píldora necesita pintar.
@@ -25,28 +27,16 @@ export function CategoryChips({ categories, selectedId, onSelect }: Props): Reac
       showsHorizontalScrollIndicator={false}
       contentContainerClassName="gap-2 px-5"
     >
-      {categories.map((category: CategoryChipItem): ReactElement => {
-        const selected = category.id === selectedId
-
-        return (
-          <Pressable
+      {categories.map(
+        (category: CategoryChipItem): ReactElement => (
+          <Chip
             key={category.id}
-            accessibilityRole="button"
-            accessibilityLabel={category.name}
-            accessibilityState={{ selected }}
+            label={category.name}
+            selected={category.id === selectedId}
             onPress={() => onSelect(category.id)}
-            className={`h-9 items-center justify-center rounded-selector px-3.5 ${
-              selected ? 'bg-primary' : 'border border-base-300 bg-base-100'
-            }`}
-          >
-            <Text
-              className={`text-[13px] ${selected ? 'font-medium text-primary-content' : 'text-base-content'}`}
-            >
-              {category.name}
-            </Text>
-          </Pressable>
-        )
-      })}
+          />
+        ),
+      )}
     </ScrollView>
   )
 }

@@ -1,9 +1,12 @@
 import { router, useLocalSearchParams } from 'expo-router'
+import { KeyRound, Mail } from 'lucide-react-native'
 import { ReactElement, useState } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { Alert, BrandHeader, Button, Card, Screen, TextField } from '@ds/components'
+import { Alert, Button, Screen, Text, TextField } from '@ds/components'
+
+import { AuthHeader } from '../components/AuthHeader'
 
 /**
  * El backend responde igual exista o no la cuenta, para no revelar qué correos están dados de alta.
@@ -11,8 +14,6 @@ import { Alert, BrandHeader, Button, Card, Screen, TextField } from '@ds/compone
  * calla.
  */
 const RESEND_NOTICE = 'Si esa cuenta existe, recibirás un código nuevo.'
-
-const SUCCESS_NOTICE = 'Cuenta activada. Ya puedes iniciar sesión.'
 
 export function ActivateScreen(): ReactElement {
   const { activateAccount, resendActivation } = useContainer()
@@ -38,8 +39,9 @@ export function ActivateScreen(): ReactElement {
         setError(result.error.message)
         return
       }
-      setNotice(SUCCESS_NOTICE)
-      router.replace('/login')
+      // El aviso lo da el acceso, no esta pantalla: escribirlo aquí y navegar acto seguido lo
+      // dejaba pintado durante un fotograma y nadie llegaba a leerlo.
+      router.replace({ pathname: '/login', params: { aviso: 'activada' } })
     } finally {
       setSubmitting(false)
     }
@@ -63,67 +65,70 @@ export function ActivateScreen(): ReactElement {
   }
 
   return (
-    <Screen padded={false}>
-      <BrandHeader subtitle="Ya casi está: confirma tu correo" />
-      <View className="p-5">
-        <Card>
-          <Text className="mb-2 font-medium text-[22px] text-base-content">Activa tu cuenta</Text>
-          <Text className="text-[13px] text-base-content opacity-70">
-            Introduce el código que te hemos enviado por correo.
+    <Screen>
+      <AuthHeader subtitle="Escribe el código que te hemos enviado por correo" />
+
+      <Text variant="title">Activa tu cuenta</Text>
+
+      <View className="mt-4 gap-4">
+        {error ? <Alert variant="error" message={error} /> : null}
+        {notice ? <Alert variant="success" message={notice} /> : null}
+
+        {emailFromLink ? null : (
+          <TextField
+            label="Correo electrónico"
+            icon={Mail}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            autoComplete="email"
+            placeholder="tucorreo@ejemplo.com"
+          />
+        )}
+
+        <TextField
+          label="Código de activación"
+          icon={KeyRound}
+          value={code}
+          onChangeText={setCode}
+          keyboardType="number-pad"
+          autoComplete="one-time-code"
+          textContentType="oneTimeCode"
+          autoFocus
+          style={{ textAlign: 'center', letterSpacing: 6 }}
+        />
+
+        <Button
+          title="Activar cuenta"
+          onPress={activate}
+          loading={submitting}
+          disabled={code.trim().length === 0}
+        />
+
+        <Pressable
+          onPress={resend}
+          disabled={resending}
+          accessibilityRole="link"
+          className="items-center"
+          hitSlop={8}
+        >
+          <Text variant="label" tone="primary">
+            Reenviar código
           </Text>
+        </Pressable>
+      </View>
 
-          <View className="mt-4 gap-4">
-            {error ? <Alert variant="error" message={error} /> : null}
-            {notice ? <Alert variant="success" message={notice} /> : null}
-
-            {emailFromLink ? null : (
-              <TextField
-                label="Correo electrónico"
-                value={email}
-                onChangeText={setEmail}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                autoComplete="email"
-                placeholder="tucorreo@ejemplo.com"
-              />
-            )}
-
-            <TextField
-              label="Código de activación"
-              value={code}
-              onChangeText={setCode}
-              keyboardType="number-pad"
-              autoComplete="one-time-code"
-              textContentType="oneTimeCode"
-              autoFocus
-              style={{ textAlign: 'center', letterSpacing: 6 }}
-            />
-
-            <Button
-              title="Activar cuenta"
-              onPress={activate}
-              loading={submitting}
-              disabled={code.trim().length === 0}
-            />
-
-            <Pressable
-              onPress={resend}
-              disabled={resending}
-              accessibilityRole="link"
-              className="items-center"
-            >
-              <Text className="text-[13px] text-primary">Reenviar código</Text>
-            </Pressable>
-          </View>
-        </Card>
-
-        <View className="mt-6 flex-row justify-center gap-1">
-          <Text className="text-[13px] text-base-content opacity-70">¿Ya la has activado?</Text>
-          <Pressable onPress={() => router.replace('/login')} accessibilityRole="link">
-            <Text className="font-medium text-[13px] text-primary">Iniciar sesión</Text>
-          </Pressable>
-        </View>
+      <View className="mt-8 flex-row justify-center gap-1">
+        <Text variant="label" tone="muted">
+          ¿Ya la has activado?
+        </Text>
+        <Pressable onPress={() => router.replace('/login')} accessibilityRole="link" hitSlop={8}>
+          <Text variant="label" tone="primary">
+            Iniciar sesión
+          </Text>
+        </Pressable>
       </View>
     </Screen>
   )

@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { router } from 'expo-router'
+import { router, useFocusEffect } from 'expo-router'
 import { ReactElement, useCallback, useEffect, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { Alert, Screen } from '@ds/components'
+import { useCartCountStore } from '../state/cart-count.store'
+import { Alert, Screen, Skeleton } from '@ds/components'
 import { CartLine, LineRef, totalUnits } from '@features/cart/domain/entities/cart-line'
 
 import { CartEmptyState, CartLineRow, CartSummary, SavedForLaterList } from '../components'
@@ -20,27 +21,54 @@ export function CartScreen(): ReactElement {
   const { loadCart, loadSavedCart, updateQuantity, removeFromCart, saveForLater, moveToCart, quoteCart } =
     useContainer()
 
+  const setUnits = useCartCountStore((state) => state.setUnits)
+
   const [lines, setLines] = useState<CartLine[]>([])
   const [saved, setSaved] = useState<CartLine[]>([])
   const [error, setError] = useState<string | null>(null)
+  /*
+   * Si la cesta se ha leído ya alguna vez.
+   *
+   * Sin esto, mientras llegaba lo guardado la pantalla decía «Tu cesta está vacía»: quien tenía
+   * cinco productos veía primero que no tenía ninguno. Un vacío es una afirmación, y no se puede
+   * afirmar antes de haber mirado.
+   */
+  const [leida, setLeida] = useState(false)
 
+  /*
+   * Se recarga CADA VEZ que la pestaña vuelve al frente, no solo al montarse.
+   *
+   * Las pestañas se quedan montadas: con un efecto de montaje, añadir algo desde la ficha subía el
+   * contador de la pestaña y la cesta seguía enseñando lo que había leído la primera vez —vacía—.
+   * Solo cerrando y abriendo la aplicación aparecía el producto.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false
+
+      void loadCart.execute().then((stored) => {
+        if (cancelled) return
+        setLines(stored)
+        setLeida(true)
+      })
+
+      // Lo guardado vive en el servidor: hay que pedirlo, no basta con lo que haya en el dispositivo.
+      // Es lo que hace que apartar un producto desde el panel web se vea también aquí.
+      void loadSavedCart.execute().then((result) => {
+        if (!cancelled && result.ok) setSaved([...result.value])
+      })
+
+      return () => {
+        cancelled = true
+      }
+    }, [loadCart, loadSavedCart]),
+  )
+
+  // El distintivo de la pestaña se pone al día con cada cambio: quitar una línea aquí tiene que
+  // verse abajo sin salir y volver a entrar.
   useEffect(() => {
-    let cancelled = false
-
-    loadCart.execute().then((stored) => {
-      if (!cancelled) setLines(stored)
-    })
-
-    // Lo guardado vive en el servidor: hay que pedirlo, no basta con lo que haya en el dispositivo.
-    // Es lo que hace que apartar un producto desde el panel web se vea también aquí.
-    loadSavedCart.execute().then((result) => {
-      if (!cancelled && result.ok) setSaved([...result.value])
-    })
-
-    return () => {
-      cancelled = true
-    }
-  }, [loadCart, loadSavedCart])
+    setUnits(totalUnits(lines))
+  }, [lines, setUnits])
 
   // El presupuesto se rehace con cada cambio de la cesta. La clave incluye las cantidades para que
   // subir una unidad devuelva el importe nuevo y no el de la consulta anterior.
@@ -97,16 +125,30 @@ export function CartScreen(): ReactElement {
     [moveToCart],
   )
 
+  // Mientras no se haya leído, huecos con la forma de las líneas. Decir «vacía» antes de mirar es
+  // afirmar algo que todavía no se sabe.
+  if (!leida) {
+    return (
+      <Screen edges={['top']}>
+        <View className="gap-3">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </View>
+      </Screen>
+    )
+  }
+
   if (lines.length === 0 && saved.length === 0) {
     return (
-      <Screen>
+      <Screen edges={['top']}>
         <CartEmptyState onBrowseCatalog={() => router.push('/(app)/(tabs)/catalog')} />
       </Screen>
     )
   }
 
   return (
-    <Screen padded={false}>
+    <Screen padded={false} edges={['top']}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="gap-3 p-5 pb-32">
         {error ? <Alert variant="error" message={error} /> : null}
 

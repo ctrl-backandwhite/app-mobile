@@ -62,14 +62,16 @@ export function defaultAddress(addresses: readonly Address[]): Address | undefin
 }
 
 /** Una línea con lo imprescindible para reconocer la dirección en la lista. */
-export function addressSummary(address: Address): string {
+export function addressSummary(address: Address, countryName?: string): string {
   const parts = [
     address.line1,
     address.line2,
     address.city,
     address.state,
     address.postalCode,
-    address.country,
+    // El nombre del país llega de fuera —lo sirve el backend traducido— porque el dominio no puede
+    // tener una tabla de países: serían doscientas filas en ocho idiomas que mantener a mano.
+    countryName ?? address.country,
   ]
   return parts.filter((part) => filled(part)).join(', ')
 }

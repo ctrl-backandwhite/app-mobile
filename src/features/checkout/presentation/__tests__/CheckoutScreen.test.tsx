@@ -244,7 +244,7 @@ describe('CheckoutScreen', () => {
     await renderCheckout(<CheckoutScreen />, container)
 
     await fireEvent.changeText(await screen.findByLabelText('Cupón'), 'verano')
-    await fireEvent.press(screen.getByText('Aplicar cupón'))
+    await fireEvent.press(screen.getByText('Aplicar'))
 
     await waitFor(() =>
       expect(container.quoteShipping.execute).toHaveBeenCalledWith(

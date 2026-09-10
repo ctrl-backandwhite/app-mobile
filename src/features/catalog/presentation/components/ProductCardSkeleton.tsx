@@ -1,6 +1,8 @@
 import { ReactElement } from 'react'
 import { View } from 'react-native'
 
+import { Skeleton } from '@ds/components'
+
 /**
  * Hueco de `ProductCard` mientras llega la respuesta.
  *
@@ -16,14 +18,14 @@ export function ProductCardSkeleton(): ReactElement {
       importantForAccessibility="no-hide-descendants"
       className="overflow-hidden rounded-box border border-base-300 bg-base-100"
     >
-      <View className="aspect-square w-full bg-base-200" />
-      <View className="gap-1.5 p-3">
+      <Skeleton className="aspect-square w-full rounded-none" />
+      <View className="gap-2 p-3">
         <View className="min-h-[36px] gap-1.5">
-          <View className="h-3 w-full rounded-selector bg-base-200" />
-          <View className="h-3 w-3/5 rounded-selector bg-base-200" />
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-3/5" />
         </View>
-        <View className="h-4 w-1/2 rounded-selector bg-base-200" />
-        <View className="h-3 w-2/5 rounded-selector bg-base-200" />
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-3 w-2/5" />
       </View>
     </View>
   )

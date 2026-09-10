@@ -16,6 +16,8 @@ export function aProduct(overrides: Partial<ProductSummary> = {}): ProductSummar
     monthlySales: 1240,
     status: 'ACTIVE',
     displayFormatted: '24,90 €',
+    dutyCovered: false,
+    shippingCovered: false,
     ...overrides,
   }
 }

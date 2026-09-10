@@ -1,12 +1,13 @@
-import { fireEvent, render, screen } from '@testing-library/react-native'
+import { fireEvent, screen } from '@testing-library/react-native'
 
 import { anAddress } from '@features/checkout/domain/testing/checkout-builders'
 
 import { AddressPicker } from '../AddressPicker'
+import { renderCheckout } from '../../testing/render-checkout'
 
 describe('AddressPicker', () => {
   it('pinta la dirección con su etiqueta y su resumen', async () => {
-    await render(
+    await renderCheckout(
       <AddressPicker
         addresses={[anAddress({ label: 'Oficina' })]}
         selectedId="a-1"
@@ -21,21 +22,23 @@ describe('AddressPicker', () => {
   })
 
   it('avisa cuando la libreta está vacía', async () => {
-    await render(<AddressPicker addresses={[]} onSelect={jest.fn()} onAdd={jest.fn()} />)
+    await renderCheckout(<AddressPicker addresses={[]} onSelect={jest.fn()} onAdd={jest.fn()} />)
 
     expect(screen.getByText(/Todavía no tienes ninguna dirección/)).toBeTruthy()
   })
 
-  it('dice que está cargando antes de tener la libreta', async () => {
-    await render(<AddressPicker addresses={[]} loading onSelect={jest.fn()} onAdd={jest.fn()} />)
+  it('no dice que la libreta está vacía mientras aún se está cargando', async () => {
+    // Antes salía «Cargando direcciones…»; ahora son huecos con la forma de las tarjetas. Lo que
+    // importa sigue siendo lo mismo: que no se anuncie un vacío que todavía no se sabe si lo es.
+    await renderCheckout(<AddressPicker addresses={[]} loading onSelect={jest.fn()} onAdd={jest.fn()} />)
 
-    expect(screen.getByText('Cargando direcciones…')).toBeTruthy()
+    expect(screen.queryByText(/Todavía no tienes ninguna dirección/)).toBeNull()
   })
 
   it('avisa de la dirección elegida y del alta', async () => {
     const onSelect = jest.fn()
     const onAdd = jest.fn()
-    await render(
+    await renderCheckout(
       <AddressPicker addresses={[anAddress()]} onSelect={onSelect} onAdd={onAdd} />,
     )
 

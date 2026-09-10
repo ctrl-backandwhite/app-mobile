@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { ReactElement } from 'react'
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
+import { ScrollView } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { Card, Screen } from '@ds/components'
+import { Card, OptionRow, Screen, Spinner, Text } from '@ds/components'
 import { currencyName } from '@features/account/domain/entities/currency-names'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 
@@ -55,21 +55,25 @@ export function RegionScreen(): ReactElement {
   return (
     <Screen padded={false}>
       <ScrollView contentContainerClassName="gap-4 p-5">
+        <Text variant="caption" tone="muted" className="mb-2">
+          Deciden en qué idioma llega el catálogo y en qué moneda se leen los precios.
+        </Text>
         <Card>
-          <Text className="mb-1 font-medium text-[15px] text-base-content">Idioma</Text>
-          <Text className="mb-3 text-[12px] text-base-content opacity-60">
+          <Text variant="heading" className="mb-1">Idioma</Text>
+          <Text variant="caption" tone="muted" className="mb-3">
             El catálogo y los mensajes se piden en este idioma.
           </Text>
           {idiomas.isLoading ? (
-            <ActivityIndicator testID="cargando-idiomas" />
+            <Spinner testID="cargando-idiomas" className="py-4" />
           ) : (
-            (idiomas.data ?? []).map((idioma) => (
-              <Fila
+            (idiomas.data ?? []).map((idioma, indice, lista) => (
+              <OptionRow
                 key={idioma.code}
                 testID={`idioma-${idioma.code}`}
-                emoji={idioma.flag}
-                titulo={idioma.label}
-                elegido={idioma.code === locale}
+                leading={idioma.flag}
+                label={idioma.label}
+                selected={idioma.code === locale}
+                last={indice === lista.length - 1}
                 onPress={() => eligeIdioma(idioma.code)}
               />
             ))
@@ -77,20 +81,21 @@ export function RegionScreen(): ReactElement {
         </Card>
 
         <Card>
-          <Text className="mb-1 font-medium text-[15px] text-base-content">Divisa</Text>
-          <Text className="mb-3 text-[12px] text-base-content opacity-60">
+          <Text variant="heading" className="mb-1">Divisa</Text>
+          <Text variant="caption" tone="muted" className="mb-3">
             Los precios los calcula el servidor en esta moneda.
           </Text>
           {divisas.isLoading ? (
-            <ActivityIndicator testID="cargando-divisas" />
+            <Spinner testID="cargando-divisas" className="py-4" />
           ) : (
-            (divisas.data ?? []).map((divisa) => (
-              <Fila
+            (divisas.data ?? []).map((divisa, indice, lista) => (
+              <OptionRow
                 key={divisa.code}
                 testID={`divisa-${divisa.code}`}
-                emoji={divisa.flag}
-                titulo={`${divisa.code} · ${currencyName(divisa.code, divisa.name)}`}
-                elegido={divisa.code === currency}
+                leading={divisa.flag}
+                label={`${divisa.code} · ${currencyName(divisa.code, divisa.name)}`}
+                selected={divisa.code === currency}
+                last={indice === lista.length - 1}
                 onPress={() => eligeDivisa(divisa.code)}
               />
             ))
@@ -98,30 +103,5 @@ export function RegionScreen(): ReactElement {
         </Card>
       </ScrollView>
     </Screen>
-  )
-}
-
-interface FilaProps {
-  emoji: string
-  titulo: string
-  elegido: boolean
-  testID: string
-  onPress: () => void
-}
-
-/** Una opción de la lista. Alto de dedo y la marca a la derecha, donde se mira. */
-function Fila({ emoji, titulo, elegido, testID, onPress }: FilaProps): ReactElement {
-  return (
-    <Pressable
-      testID={testID}
-      accessibilityRole="radio"
-      accessibilityState={{ selected: elegido }}
-      onPress={onPress}
-      className="min-h-11 flex-row items-center gap-3 border-b border-base-300 py-3"
-    >
-      <Text className="text-[18px]">{emoji}</Text>
-      <Text className="flex-1 text-[14px] text-base-content">{titulo}</Text>
-      {elegido ? <Text className="text-[15px] text-primary">✓</Text> : <View />}
-    </Pressable>
   )
 }

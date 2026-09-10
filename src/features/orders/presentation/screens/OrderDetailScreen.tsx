@@ -1,16 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { router, useLocalSearchParams } from 'expo-router'
+import { ImageOff } from 'lucide-react-native'
 import { ReactElement, useState } from 'react'
-import { Alert, Image, ScrollView, Text, View } from 'react-native'
+import { Alert, ScrollView, View } from 'react-native'
 
-import { Button, Card, Screen } from '@ds/components'
+import { Button, Card, Icon, RemoteImage, Screen, Skeleton, Text } from '@ds/components'
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 import { EmptyState } from '@features/catalog/presentation/components'
-import { isCancellable, statusLabel } from '@features/orders/domain/entities/order'
+import { isCancellable } from '@features/orders/domain/entities/order'
+import { useCountryNames } from '@features/checkout/presentation/hooks/use-country-name'
 import { OrderAddress, OrderItem } from '@features/orders/domain/entities/order-detail'
 import { Shipment } from '@features/orders/domain/entities/tracking'
 
-import { TrackingTimeline } from '../components'
+import { OrderStatusBadge, TrackingTimeline } from '../components'
 import { useOrdersUseCases } from '../hooks/use-orders-use-cases'
 import { formatDate } from '../lib/format-date'
 
@@ -32,14 +34,10 @@ function AmountRow({
 }): ReactElement {
   return (
     <View className="flex-row items-center justify-between gap-3 py-1">
-      <Text className={`text-[13px] text-base-content ${strong ? 'font-medium' : 'opacity-70'}`}>
+      <Text variant="label" tone={strong ? 'default' : 'muted'}>
         {label}
       </Text>
-      <Text
-        className={`text-base-content ${strong ? 'font-medium text-[16px]' : 'text-[13px]'} ${
-          value ? '' : 'opacity-40'
-        }`}
-      >
+      <Text variant={strong ? 'price' : 'label'} tone={value ? 'default' : 'muted'}>
         {value ?? NO_AMOUNT}
       </Text>
     </View>
@@ -50,26 +48,26 @@ function ItemRow({ item }: { item: OrderItem }): ReactElement {
   return (
     <View testID={`order-item-${item.id}`} className="flex-row gap-3 py-2">
       {item.imageUrl ? (
-        <Image
-          accessibilityIgnoresInvertColors
-          source={{ uri: item.imageUrl }}
-          resizeMode="cover"
-          className="h-14 w-14 rounded-selector bg-base-200"
-        />
+        <RemoteImage uri={item.imageUrl} className="h-14 w-14 rounded-selector bg-base-200" />
       ) : (
-        <View className="h-14 w-14 rounded-selector bg-base-200" />
+        // Con el hueco vacío parecía que la foto no había cargado y que era cosa de esperar. El
+        // icono dice lo que pasa de verdad: esa variante no tiene imagen y no va a aparecer.
+        <View className="h-14 w-14 items-center justify-center rounded-selector bg-base-200">
+          <Icon glyph={ImageOff} size="md" tone="muted" />
+        </View>
       )}
       <View className="flex-1 gap-0.5">
-        <Text numberOfLines={2} className="text-[13px] leading-[18px] text-base-content">
+        <Text numberOfLines={2} variant="label" className="leading-[18px]">
           {item.productTitle}
         </Text>
         {item.variantName ? (
-          <Text className="text-[11px] text-base-content opacity-60">{item.variantName}</Text>
+          <Text variant="caption" tone="muted">{item.variantName}</Text>
         ) : null}
         <View className="flex-row items-center justify-between gap-2">
-          <Text className="text-[12px] text-base-content opacity-70">×{item.quantity}</Text>
+          <Text variant="caption" tone="muted">×{item.quantity}</Text>
           <Text
-            className={`text-[13px] text-base-content ${item.lineTotalFormatted ? '' : 'opacity-40'}`}
+            variant="label"
+            tone={item.lineTotalFormatted ? 'default' : 'muted'}
           >
             {item.lineTotalFormatted ?? NO_AMOUNT}
           </Text>
@@ -79,10 +77,15 @@ function ItemRow({ item }: { item: OrderItem }): ReactElement {
   )
 }
 
-/** Las líneas de la dirección se componen tal y como llegaron: aquí no se normaliza ningún dato. */
-function addressLines(address: OrderAddress): string[] {
+/**
+ * Las líneas de la dirección se componen tal y como llegaron: aquí no se normaliza ningún dato.
+ *
+ * El país es la excepción y llega ya con nombre: una dirección que termina en «ES» está a medio
+ * escribir, y el nombre lo sirve el backend traducido.
+ */
+function addressLines(address: OrderAddress, countryName: string): string[] {
   const cityLine = [address.postalCode, address.city].filter(Boolean).join(' ')
-  const regionLine = [address.state, address.country].filter(Boolean).join(', ')
+  const regionLine = [address.state, countryName || address.country].filter(Boolean).join(', ')
   return [address.line1, address.line2, cityLine, regionLine, address.phone].filter(
     (line): line is string => Boolean(line && line.length > 0),
   )
@@ -93,12 +96,12 @@ function ShipmentBlock({ shipment, total }: { shipment: Shipment; total: number 
   return (
     <View testID={`shipment-${shipment.sequenceNo}`} className="gap-2 rounded-field border border-base-300 p-3">
       <View className="flex-row flex-wrap items-center justify-between gap-2">
-        <Text className="font-medium text-[13px] text-base-content">
+        <Text variant="label">
           Bulto {shipment.sequenceNo} de {total}
           {weightKg ? ` · ${weightKg}` : ''}
         </Text>
         {shipment.trackingNumber ? (
-          <Text className="text-[11px] text-base-content opacity-70">
+          <Text variant="caption" tone="muted">
             {shipment.carrier ? `${shipment.carrier} · ` : ''}
             {shipment.trackingNumber}
           </Text>
@@ -113,6 +116,7 @@ export function OrderDetailScreen(): ReactElement {
   const { getOrderDetail, getOrderTracking, cancelOrder } = useOrdersUseCases()
   const locale = useSessionStore((state) => state.locale)
   const { id } = useLocalSearchParams<{ id: string }>()
+  const nombreDelPais = useCountryNames()
 
   const [cancelling, setCancelling] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
@@ -177,7 +181,11 @@ export function OrderDetailScreen(): ReactElement {
   if (detail.isLoading) {
     return (
       <Screen>
-        <Text className="py-8 text-center text-[13px] text-base-content opacity-60">Cargando…</Text>
+        <View className="gap-3">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-28 w-full" />
+        </View>
       </Screen>
     )
   }
@@ -198,13 +206,29 @@ export function OrderDetailScreen(): ReactElement {
   return (
     <Screen padded={false}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerClassName="gap-3 p-5 pb-10">
-        <Card className="gap-1">
-          <Text className="font-medium text-[17px] text-base-content">{order.orderNumber}</Text>
-          <Text className="text-[13px] text-base-content opacity-70">
-            {statusLabel(order.status)} · {formatDate(order.placedAt)}
+        {/*
+          La referencia del pedido es lo primero: es el dato que se copia para preguntar por él, y
+          antes no salía en ninguna parte de esta pantalla —el título del navegador solo pone
+          «Pedido»—.
+        */}
+        <View className="mb-1 gap-0.5">
+          <Text variant="eyebrow" tone="muted">
+            Pedido
           </Text>
+          <Text variant="title" selectable>
+            {order.orderNumber}
+          </Text>
+        </View>
+
+        <Card className="gap-2">
+          <View className="flex-row items-center justify-between gap-3">
+            <Text variant="label" tone="muted">
+              {formatDate(order.placedAt)}
+            </Text>
+            <OrderStatusBadge status={order.status} />
+          </View>
           {order.trackingNumber ? (
-            <Text className="text-[12px] text-base-content opacity-60">
+            <Text variant="caption" tone="muted">
               {order.trackingCarrier ? `${order.trackingCarrier} · ` : ''}
               {order.trackingNumber}
             </Text>
@@ -212,7 +236,7 @@ export function OrderDetailScreen(): ReactElement {
         </Card>
 
         <Card className="gap-1">
-          <Text className="mb-1 font-medium text-[15px] text-base-content">Artículos</Text>
+          <Text variant="heading" className="mb-1">Artículos</Text>
           {order.items.map((item) => (
             <ItemRow key={item.id} item={item} />
           ))}
@@ -220,10 +244,10 @@ export function OrderDetailScreen(): ReactElement {
 
         {order.shippingAddress ? (
           <Card className="gap-1">
-            <Text className="mb-1 font-medium text-[15px] text-base-content">Dirección de envío</Text>
-            <Text className="text-[13px] text-base-content">{order.shippingAddress.fullName}</Text>
-            {addressLines(order.shippingAddress).map((line) => (
-              <Text key={line} className="text-[13px] text-base-content opacity-70">
+            <Text variant="heading" className="mb-1">Dirección de envío</Text>
+            <Text variant="label">{order.shippingAddress.fullName}</Text>
+            {addressLines(order.shippingAddress, nombreDelPais(order.shippingAddress.country)).map((line) => (
+              <Text key={line} variant="label" tone="muted">
                 {line}
               </Text>
             ))}
@@ -231,7 +255,7 @@ export function OrderDetailScreen(): ReactElement {
         ) : null}
 
         <Card>
-          <Text className="mb-1 font-medium text-[15px] text-base-content">Resumen</Text>
+          <Text variant="heading" className="mb-1">Resumen</Text>
           <AmountRow label="Subtotal" value={order.subtotalFormatted} />
           <AmountRow label="Envío" value={order.shippingFormatted} />
           {/*
@@ -253,7 +277,7 @@ export function OrderDetailScreen(): ReactElement {
 
         {hasTracking ? (
           <Card className="gap-3">
-            <Text className="font-medium text-[15px] text-base-content">Seguimiento</Text>
+            <Text variant="heading">Seguimiento</Text>
             {shipments.length > 0 ? (
               shipments.map((shipment) => (
                 <ShipmentBlock key={shipment.sequenceNo} shipment={shipment} total={shipments.length} />
@@ -267,12 +291,10 @@ export function OrderDetailScreen(): ReactElement {
         {isCancellable(order) ? (
           <View className="gap-2">
             {cancelError ? (
-              <Text
-                accessible
-                accessibilityRole="alert"
-                accessibilityLabel={cancelError}
-                className="text-[13px] text-error"
-              >
+              <Text accessible
+        accessibilityRole="alert"
+        accessibilityLabel={cancelError}
+        variant="label" tone="error">
                 {cancelError}
               </Text>
             ) : null}

@@ -30,6 +30,8 @@ export function aProduct(overrides: Partial<ProductSummary> = {}): ProductSummar
     mainImage: 'https://cdn.nx036.com/p-1.jpg',
     rating: 4.6,
     monthlySales: 120,
+    dutyCovered: false,
+    shippingCovered: false,
     status: 'ACTIVE',
     displayFormatted: '12,90 €',
     ...overrides,

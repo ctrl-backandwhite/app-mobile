@@ -1,7 +1,7 @@
 import { ReactElement } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
-import { Alert, TextField } from '@ds/components'
+import { Alert, Text, TextField } from '@ds/components'
 
 interface Props {
   value: string
@@ -29,7 +29,7 @@ export function OtpField({ value, onChangeText, hint }: Props): ReactElement {
         autoFocus
         style={{ textAlign: 'center', letterSpacing: 8 }}
       />
-      {hint ? <Text className="text-[11px] text-base-content opacity-60">{hint}</Text> : null}
+      {hint ? <Text variant="caption" tone="muted">{hint}</Text> : null}
     </View>
   )
 }

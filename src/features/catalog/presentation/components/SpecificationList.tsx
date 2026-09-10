@@ -1,5 +1,7 @@
 import { ReactElement } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
+
+import { Text } from '@ds/components'
 
 import { ProductSpecification } from '@features/catalog/domain/entities/product-detail'
 
@@ -23,10 +25,10 @@ export function SpecificationList({ specifications }: Props): ReactElement | nul
         >
           {/* Dos columnas fijas: la clave a un tercio deja la fila alineada aunque los nombres de
               las especificaciones tengan longitudes muy distintas. */}
-          <Text className="w-1/3 text-[13px] text-base-content opacity-70">
+          <Text variant="label" tone="muted" className="w-1/3">
             {specification.key}
           </Text>
-          <Text className="flex-1 text-[13px] text-base-content">{specification.value}</Text>
+          <Text variant="label" className="flex-1">{specification.value}</Text>
         </View>
       ))}
     </View>

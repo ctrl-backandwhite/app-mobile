@@ -1,13 +1,18 @@
 import { router } from 'expo-router'
+import { Building2, Lock, Mail, User } from 'lucide-react-native'
 import { ReactElement, useState } from 'react'
-import { Linking, Pressable, Text, View } from 'react-native'
+import { Linking, Pressable, View } from 'react-native'
 
 import { useAppConfig, useContainer } from '@composition/container.provider'
 import { checkPassword } from '@features/auth/domain/policies/password-policy'
-import { Alert, BrandHeader, Button, Card, PasswordField, Screen, TextField } from '@ds/components'
+import { Alert, Button, Checkbox, PasswordField, Screen, Text, TextField } from '@ds/components'
+
+import { LanguageField } from '@features/account/presentation/components'
+import { CountryField } from '@features/checkout/presentation/components'
 
 import { LEGAL_LINKS, LEGAL_VERSION } from '@shared/legal/legal'
 
+import { AuthHeader } from '../components/AuthHeader'
 import { PasswordRequirements } from '../components/PasswordRequirements'
 
 interface Region {
@@ -58,39 +63,9 @@ function EnlaceLegal({ etiqueta, ruta }: EnlaceLegalProps): ReactElement {
         void Linking.openURL(`${config.webBaseUrl}${ruta}`).catch(() => undefined)
       }}
     >
-      <Text className="text-[13px] text-primary underline">{etiqueta}</Text>
-    </Pressable>
-  )
-}
-
-interface CheckboxProps {
-  label: string
-  checked: boolean
-  onToggle: () => void
-}
-
-/**
- * Casilla dibujada con vistas: el sistema de diseño no incluye ninguna y la aplicación no incorpora
- * familias de iconos, igual que el ojo de `PasswordField`.
- */
-function Checkbox({ label, checked, onToggle }: CheckboxProps): ReactElement {
-  return (
-    <Pressable
-      accessibilityRole="checkbox"
-      accessibilityLabel={label}
-      accessibilityState={{ checked }}
-      onPress={onToggle}
-      hitSlop={6}
-      className="flex-row items-start gap-3"
-    >
-      <View
-        className={`mt-px h-5 w-5 items-center justify-center rounded-selector border ${
-          checked ? 'border-primary bg-primary' : 'border-base-300 bg-base-100'
-        }`}
-      >
-        {checked ? <Text className="text-[12px] text-primary-content">✓</Text> : null}
-      </View>
-      <Text className="flex-1 text-[13px] text-base-content">{label}</Text>
+      <Text variant="label" tone="primary" className="underline">
+        {etiqueta}
+      </Text>
     </Pressable>
   )
 }
@@ -141,104 +116,102 @@ export function RegisterScreen(): ReactElement {
   }
 
   return (
-    <Screen padded={false}>
-      <BrandHeader subtitle="Crea tu cuenta de revendedor" />
-      <View className="p-5">
-        <Card>
-          <Text className="mb-5 font-medium text-[22px] text-base-content">Crea tu cuenta</Text>
+    <Screen>
+      <AuthHeader subtitle="Crea tu cuenta de revendedor" />
 
-          {error ? <Alert variant="error" message={error} /> : null}
+      {error ? <Alert variant="error" message={error} /> : null}
 
-          <View className="mt-4 gap-4">
-            <TextField
-              label="Correo electrónico"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoComplete="email"
-              placeholder="tucorreo@ejemplo.com"
-            />
+      <View className="mt-2 gap-4">
+        <TextField
+          label="Correo electrónico"
+          icon={Mail}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="email"
+          placeholder="tucorreo@ejemplo.com"
+        />
 
-            <View>
-              <PasswordField
-                label="Contraseña"
-                value={password}
-                onChangeText={setPassword}
-                autoComplete="new-password"
-                textContentType="newPassword"
-              />
-              <PasswordRequirements value={password} />
-            </View>
-
-            <TextField
-              label="Nombre"
-              value={firstName}
-              onChangeText={setFirstName}
-              autoCapitalize="words"
-              autoComplete="given-name"
-            />
-
-            <TextField
-              label="Empresa (opcional)"
-              value={companyName}
-              onChangeText={setCompanyName}
-              autoCapitalize="words"
-            />
-
-            <TextField
-              label="País"
-              value={country}
-              onChangeText={setCountry}
-              autoCapitalize="characters"
-              autoCorrect={false}
-              maxLength={2}
-              placeholder="ES"
-            />
-
-            <TextField
-              label="Idioma"
-              value={language}
-              onChangeText={setLanguage}
-              autoCapitalize="none"
-              autoCorrect={false}
-              maxLength={2}
-              placeholder="es"
-            />
-
-            <View className="gap-3">
-              <Checkbox
-                label="Acepto los términos y condiciones y la política de privacidad"
-                checked={acceptedTerms}
-                onToggle={() => setAcceptedTerms((previous: boolean): boolean => !previous)}
-              />
-              {/*
-                Los documentos tienen que poder leerse ANTES de marcar la casilla. Aceptar algo que no
-                se puede consultar no es consentimiento informado, y la casilla sola no lo era: hasta
-                aquí la pantalla no ofrecía forma de abrir ninguno de los dos textos.
-              */}
-              <View className="-mt-1 flex-row flex-wrap items-center gap-x-3 pl-8">
-                <EnlaceLegal etiqueta="Leer los términos" ruta={LEGAL_LINKS.terminos} />
-                <EnlaceLegal etiqueta="Leer la privacidad" ruta={LEGAL_LINKS.privacidad} />
-              </View>
-              <Checkbox
-                label="Quiero recibir novedades y ofertas por correo"
-                checked={marketingOptIn}
-                onToggle={() => setMarketingOptIn((previous: boolean): boolean => !previous)}
-              />
-            </View>
-
-            <Button title="Crear cuenta" onPress={submit} loading={submitting} disabled={!ready} />
-          </View>
-        </Card>
-
-        <View className="mt-6 flex-row justify-center gap-1">
-          <Text className="text-[13px] text-base-content opacity-70">¿Ya tienes cuenta?</Text>
-          <Pressable onPress={() => router.push('/login')} accessibilityRole="link">
-            <Text className="font-medium text-[13px] text-primary">Iniciar sesión</Text>
-          </Pressable>
+        <View>
+          <PasswordField
+            label="Contraseña"
+            icon={Lock}
+            value={password}
+            onChangeText={setPassword}
+            autoComplete="new-password"
+            textContentType="newPassword"
+          />
+          <PasswordRequirements value={password} />
         </View>
+
+        <TextField
+          label="Nombre"
+          icon={User}
+          value={firstName}
+          onChangeText={setFirstName}
+          autoCapitalize="words"
+          autoComplete="given-name"
+        />
+
+        <TextField
+          label="Empresa (opcional)"
+          icon={Building2}
+          value={companyName}
+          onChangeText={setCompanyName}
+          autoCapitalize="words"
+        />
+
+        {/*
+          Los dos se eligen de una lista y ya no se teclean. El país decide el margen y los impuestos
+          de la cuenta, así que un «ES» mal escrito no era un detalle: se apuntaba tal cual y salía
+          después en cada precio. La detección del teléfono sigue rellenándolos de entrada.
+        */}
+        <CountryField
+          testID="pais-de-la-cuenta"
+          label="País"
+          placeholder="Elige tu país"
+          value={country}
+          onChange={setCountry}
+        />
+        <LanguageField value={language} onChange={setLanguage} />
+
+        <View className="gap-3">
+          <Checkbox
+            label="Acepto los términos y condiciones y la política de privacidad"
+            checked={acceptedTerms}
+            onToggle={() => setAcceptedTerms((previous: boolean): boolean => !previous)}
+          >
+            {/*
+              Los documentos tienen que poder leerse ANTES de marcar la casilla. Aceptar algo que no
+              se puede consultar no es consentimiento informado, y la casilla sola no lo era: hasta
+              aquí la pantalla no ofrecía forma de abrir ninguno de los dos textos.
+            */}
+            <View className="flex-row flex-wrap items-center gap-x-3">
+              <EnlaceLegal etiqueta="Leer los términos" ruta={LEGAL_LINKS.terminos} />
+              <EnlaceLegal etiqueta="Leer la privacidad" ruta={LEGAL_LINKS.privacidad} />
+            </View>
+          </Checkbox>
+          <Checkbox
+            label="Quiero recibir novedades y ofertas por correo"
+            checked={marketingOptIn}
+            onToggle={() => setMarketingOptIn((previous: boolean): boolean => !previous)}
+          />
+        </View>
+
+        <Button title="Crear cuenta" onPress={submit} loading={submitting} disabled={!ready} />
+      </View>
+
+      <View className="mt-8 flex-row justify-center gap-1">
+        <Text variant="label" tone="muted">
+          ¿Ya tienes cuenta?
+        </Text>
+        <Pressable onPress={() => router.push('/login')} accessibilityRole="link" hitSlop={8}>
+          <Text variant="label" tone="primary">
+            Iniciar sesión
+          </Text>
+        </Pressable>
       </View>
     </Screen>
   )

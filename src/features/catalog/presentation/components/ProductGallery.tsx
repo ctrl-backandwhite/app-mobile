@@ -1,16 +1,16 @@
+import { Play } from 'lucide-react-native'
 import { ReactElement, useCallback, useEffect, useRef, useState } from 'react'
 import {
   Animated,
-  Image,
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
   ScrollView,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native'
 
+import { Icon, RemoteImage, Text } from '@ds/components'
 import { ProductImage } from '@features/catalog/domain/entities/product-detail'
 
 /**
@@ -139,21 +139,21 @@ export function ProductGallery({ images, videoUrl, onIndexChange }: Props): Reac
       onTouchStart={stopAutoplay}
       className="aspect-square w-full bg-base-100"
     >
-      <Image
-        accessibilityIgnoresInvertColors
-        source={{ uri: behind.url }}
-        resizeMode="contain"
+      <RemoteImage
+        uri={behind.url}
+        contentFit="contain"
+        transition={0}
         className="absolute inset-0 h-full w-full"
       />
 
       {/* La capa de arriba lleva fondo OPACO a propósito: con `contain` la foto no cubre todo el
           hueco y, si esta capa fuese transparente, por los márgenes se vería la foto anterior. */}
       <Animated.View style={{ opacity: fade }} className="absolute inset-0 bg-base-100">
-        <Image
+        <RemoteImage
           testID="product-gallery-photo"
-          accessibilityIgnoresInvertColors
-          source={{ uri: current.url }}
-          resizeMode="contain"
+          uri={current.url}
+          contentFit="contain"
+          transition={0}
           className="h-full w-full"
         />
       </Animated.View>
@@ -163,11 +163,17 @@ export function ProductGallery({ images, videoUrl, onIndexChange }: Props): Reac
           testID="product-gallery-video-badge"
           accessibilityRole="text"
           accessibilityLabel="Este producto tiene vídeo"
-          className="absolute left-3 top-3 flex-row items-center gap-1.5 rounded-selector bg-secondary px-2 py-1"
+          /*
+            Abajo a la izquierda. Arriba se metía debajo del reloj y de los iconos del sistema —la
+            galería sube hasta el borde de la pantalla— y bajarlo a la altura de los botones
+            flotantes lo habría puesto justo encima del de volver.
+          */
+          className="absolute bottom-4 left-4 flex-row items-center gap-1.5 rounded-selector bg-secondary px-2 py-1"
         >
-          {/* Triángulo de reproducción: un bloque sin tamaño al que solo se le pinta el borde izquierdo. */}
-          <View className="h-0 w-0 border-b-[4px] border-l-[7px] border-t-[4px] border-b-transparent border-l-secondary-content border-t-transparent" />
-          <Text className="text-[11px] text-secondary-content">Vídeo</Text>
+          <Icon glyph={Play} size="sm" tone="inverse" />
+          <Text variant="caption" tone="inverse">
+            Vídeo
+          </Text>
         </View>
       ) : null}
 

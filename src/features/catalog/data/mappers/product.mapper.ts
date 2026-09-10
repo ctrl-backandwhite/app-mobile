@@ -17,6 +17,8 @@ export function toProductSummary(dto: ProductSummaryDto): ProductSummary {
     mainImage: text(dto.mainImage),
     rating: num(dto.rating),
     monthlySales: dto.monthlySales,
+    dutyCovered: dto.dutyCovered ?? false,
+    shippingCovered: dto.shippingCovered ?? false,
     trendScore: num(dto.trendScore),
     status: dto.status,
     displayFormatted: text(dto.displayFormatted),

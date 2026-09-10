@@ -43,10 +43,10 @@ describe('StorefrontScreen', () => {
     expect(await screen.findByText('Novedad')).toBeTruthy()
   })
 
-  it('muestra el recuento de productos disponibles', async () => {
+  it('muestra el recuento de referencias del catálogo', async () => {
     await renderCatalog(<StorefrontScreen />, { loadHome: loadHomeThatReturns(ok(HOME)) as never })
 
-    expect(await screen.findByText(/productos listos para revender/)).toBeTruthy()
+    expect(await screen.findByText(/referencias/)).toBeTruthy()
   })
 
   it('avisa cuando todavía no hay secciones', async () => {

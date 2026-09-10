@@ -36,12 +36,6 @@ import {
 } from '@features/account/domain/usecases/delete-account'
 import { ListCurrencies, ListLanguages } from '@features/account/domain/usecases/list-region-options'
 import { ListSessions, RevokeSession } from '@features/account/domain/usecases/sessions'
-import { HttpSubscriptionRepository } from '@features/account/data/repositories/http-subscription.repository'
-import { SubscriptionRepository } from '@features/account/domain/ports/subscription-repository'
-import {
-  CancelSubscription,
-  GetSubscription,
-} from '@features/account/domain/usecases/subscription'
 import { LoadPreferences, SavePreferences } from '@features/account/domain/usecases/preferences'
 import { ExpoPaymentApprovalGateway } from '@features/checkout/data/repositories/expo-payment-approval.gateway'
 import { HttpAddressRepository } from '@features/checkout/data/repositories/http-address.repository'
@@ -79,7 +73,12 @@ import {
 } from '@features/checkout/domain/usecases/recharge-wallet'
 import { ListAddresses } from '@features/checkout/domain/usecases/list-addresses'
 import { ListPaymentMethods } from '@features/checkout/domain/usecases/list-payment-methods'
+import { ListCountries } from '@features/checkout/domain/usecases/list-countries'
 import { ListRegions } from '@features/checkout/domain/usecases/list-regions'
+import { HttpHistoryRepository } from '@features/history/data/repositories/http-history.repository'
+import { HistoryRepository } from '@features/history/domain/ports/history-repository'
+import { ListViewedProducts } from '@features/history/domain/usecases/list-viewed-products'
+import { RecordProductView } from '@features/history/domain/usecases/record-product-view'
 import { PayWithProvider } from '@features/checkout/domain/usecases/pay-with-provider'
 import { PayWithSavedCard } from '@features/checkout/domain/usecases/pay-with-saved-card'
 import { PlaceOrder } from '@features/checkout/domain/usecases/place-order'
@@ -165,6 +164,9 @@ export interface Container {
   readonly cancelOrder: CancelOrder
   readonly listAddresses: ListAddresses
   readonly createAddress: CreateAddress
+  readonly listViewedProducts: ListViewedProducts
+  readonly recordProductView: RecordProductView
+  readonly listCountries: ListCountries
   readonly listRegions: ListRegions
   readonly quoteShipping: QuoteShipping
   readonly placeOrder: PlaceOrder
@@ -177,8 +179,6 @@ export interface Container {
   readonly revokeSession: RevokeSession
   readonly requestAccountDeletion: RequestAccountDeletion
   readonly confirmAccountDeletion: ConfirmAccountDeletion
-  readonly getSubscription: GetSubscription
-  readonly cancelSubscription: CancelSubscription
   readonly listNotifications: ListNotifications
   readonly markNotificationRead: MarkNotificationRead
   readonly markAllNotificationsRead: MarkAllNotificationsRead
@@ -244,9 +244,9 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
   const authRepository: AuthRepository = new HttpAuthRepository(http, captcha)
   const catalogRepository: CatalogRepository = new HttpCatalogRepository(http)
   const favoritesRepository: FavoritesRepository = new HttpFavoritesRepository(http)
+  const historyRepository: HistoryRepository = new HttpHistoryRepository(http)
   const regionRepository: RegionRepository = new HttpRegionRepository(http)
   const accountRepository: AccountRepository = new HttpAccountRepository(http)
-  const subscriptionRepository: SubscriptionRepository = new HttpSubscriptionRepository(http)
   const notificationsRepository: NotificationsRepository = new HttpNotificationsRepository(http)
   // El dispositivo y el servidor son dos puertos distintos a propósito: pedir el permiso es cosa del
   // teléfono y guardar el token es cosa del backend.
@@ -316,6 +316,9 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     cancelOrder: new CancelOrder(ordersRepository),
     listAddresses: new ListAddresses(new HttpAddressRepository(http)),
     createAddress: new CreateAddress(new HttpAddressRepository(http)),
+    listViewedProducts: new ListViewedProducts(historyRepository),
+    recordProductView: new RecordProductView(historyRepository),
+    listCountries: new ListCountries(new HttpShippingRepository(http)),
     listRegions: new ListRegions(new HttpShippingRepository(http)),
     quoteShipping: new QuoteShipping(new HttpShippingRepository(http)),
     placeOrder: new PlaceOrder(new HttpCheckoutRepository(http)),
@@ -334,8 +337,6 @@ export function buildContainer(config: AppConfig, overrides: Overrides = {}): Co
     revokeSession: new RevokeSession(accountRepository),
     requestAccountDeletion: new RequestAccountDeletion(accountRepository),
     confirmAccountDeletion: new ConfirmAccountDeletion(accountRepository),
-    getSubscription: new GetSubscription(subscriptionRepository),
-    cancelSubscription: new CancelSubscription(subscriptionRepository),
     listNotifications: new ListNotifications(notificationsRepository),
     markNotificationRead: new MarkNotificationRead(notificationsRepository),
     markAllNotificationsRead: new MarkAllNotificationsRead(notificationsRepository),

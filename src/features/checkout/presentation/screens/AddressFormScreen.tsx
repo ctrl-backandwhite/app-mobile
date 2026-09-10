@@ -1,12 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { router } from 'expo-router'
 import { ReactElement, useCallback, useState } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, View } from 'react-native'
 
-import { Alert, Button, Screen, TextField } from '@ds/components'
+import { Alert, Button, Checkbox, Screen, Text, TextField } from '@ds/components'
 import { isCompleteAddress, NewAddress } from '@features/checkout/domain/entities/address'
 import { checkoutErrorMessage } from '@features/checkout/domain/policies/checkout-errors'
 
+import { CountryField } from '../components/CountryField'
 import { useCheckoutDeps } from '../hooks/use-checkout-deps'
 
 const EMPTY: NewAddress = { fullName: '', line1: '', city: '', country: '' }
@@ -14,9 +15,9 @@ const EMPTY: NewAddress = { fullName: '', line1: '', city: '', country: '' }
 /**
  * Alta de una dirección de envío.
  *
- * El país se teclea como código de dos letras y no se elige de una lista porque la cobertura real
- * de destinos la sirve el backend, y esta fase no consume ese endpoint: es preferible un campo
- * explicado que una lista inventada aquí que no coincida con lo que se puede enviar.
+ * El país se elige de la cobertura real del transportista, no se teclea: un código escrito a mano se
+ * acepta sin rechistar y el fallo asoma mucho después —al cotizar el envío—, con la dirección ya
+ * guardada y el pedido a medias.
  */
 export function AddressFormScreen(): ReactElement {
   const { createAddress, listRegions } = useCheckoutDeps()
@@ -83,14 +84,14 @@ export function AddressFormScreen(): ReactElement {
           keyboardType="phone-pad"
           onChangeText={(value): void => set('phone', value)}
         />
-        <TextField
-          label="País (código de dos letras)"
+        <CountryField
+          testID="pais-de-entrega"
           value={form.country}
-          autoCapitalize="characters"
-          autoCorrect={false}
-          maxLength={2}
-          placeholder="ES"
-          onChangeText={(value): void => set('country', value.toUpperCase())}
+          onChange={(code): void => {
+            // La provincia pertenece al país anterior: dejarla puesta guardaría una dirección con
+            // una región que su país no reconoce, y el impuesto se calcularía sobre la equivocada.
+            setForm((current) => ({ ...current, country: code, state: undefined }))
+          }}
         />
         <TextField
           label="Dirección"
@@ -110,7 +111,7 @@ export function AddressFormScreen(): ReactElement {
 
         {available.length > 0 ? (
           <View className="gap-2">
-            <Text className="text-[13px] text-base-content opacity-80">Provincia o estado</Text>
+            <Text variant="label" tone="muted">Provincia o estado</Text>
             <View className="flex-row flex-wrap gap-2">
               {available.map((region) => {
                 const selected = form.state === region.code
@@ -125,7 +126,7 @@ export function AddressFormScreen(): ReactElement {
                       selected ? 'border-primary bg-primary/10' : 'border-base-300 bg-base-100'
                     }`}
                   >
-                    <Text className={`text-[12px] ${selected ? 'text-primary' : 'text-base-content'}`}>
+                    <Text variant="caption" tone={selected ? 'primary' : 'default'}>
                       {region.name}
                     </Text>
                   </Pressable>
@@ -149,22 +150,11 @@ export function AddressFormScreen(): ReactElement {
           onChangeText={(value): void => set('postalCode', value)}
         />
 
-        <Pressable
-          accessibilityRole="checkbox"
-          accessibilityLabel="Usar como dirección predeterminada"
-          accessibilityState={{ checked: form.isDefault === true }}
-          onPress={(): void => set('isDefault', !form.isDefault)}
-          className="flex-row items-center gap-2 py-1"
-        >
-          <View
-            className={`h-5 w-5 items-center justify-center rounded-selector border ${
-              form.isDefault ? 'border-primary bg-primary' : 'border-base-300 bg-base-100'
-            }`}
-          >
-            {form.isDefault ? <Text className="text-[12px] text-primary-content">✓</Text> : null}
-          </View>
-          <Text className="text-[13px] text-base-content">Usar como dirección predeterminada</Text>
-        </Pressable>
+        <Checkbox
+          label="Usar como dirección predeterminada"
+          checked={form.isDefault === true}
+          onToggle={(): void => set('isDefault', !form.isDefault)}
+        />
 
         {error ? <Alert variant="error" message={error} /> : null}
 

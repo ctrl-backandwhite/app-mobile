@@ -1,7 +1,12 @@
+import { MapPinPlus } from 'lucide-react-native'
 import { ReactElement } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, View } from 'react-native'
+
+import { Badge, Icon, Skeleton, Text } from '@ds/components'
 
 import { Address, addressSummary, addressTitle } from '@features/checkout/domain/entities/address'
+
+import { useCountryNames } from '../hooks/use-country-name'
 
 interface Props {
   addresses: readonly Address[]
@@ -18,16 +23,21 @@ export function AddressPicker({
   onSelect,
   onAdd,
 }: Props): ReactElement {
+  const nombreDelPais = useCountryNames()
+
   return (
     <View className="gap-2" testID="address-picker">
-      <Text className="text-[13px] font-medium text-base-content">Dirección de envío</Text>
+      <Text variant="label">Dirección de envío</Text>
 
       {loading ? (
-        <Text className="py-2 text-[12px] text-base-content opacity-60">Cargando direcciones…</Text>
+        <View className="gap-2">
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-16 w-full" />
+        </View>
       ) : null}
 
       {!loading && addresses.length === 0 ? (
-        <Text className="text-[12px] text-base-content opacity-70">
+        <Text variant="caption" tone="muted">
           Todavía no tienes ninguna dirección guardada.
         </Text>
       ) : null}
@@ -48,19 +58,21 @@ export function AddressPicker({
             <View className="flex-row items-center justify-between gap-2">
               <Text
                 numberOfLines={1}
-                className={`flex-1 text-[13px] ${selected ? 'font-medium text-primary' : 'text-base-content'}`}
+                variant="label"
+                tone={selected ? 'primary' : 'default'}
+                className="flex-1"
               >
                 {addressTitle(address)}
               </Text>
-              {address.isDefault ? (
-                <Text className="text-[10px] text-base-content opacity-60">Predeterminada</Text>
-              ) : null}
+              {address.isDefault ? <Badge label="Predeterminada" /> : null}
             </View>
-            <Text numberOfLines={2} className="mt-1 text-[11px] text-base-content opacity-70">
-              {addressSummary(address)}
+            <Text numberOfLines={2} variant="caption" tone="muted" className="mt-1">
+              {addressSummary(address, nombreDelPais(address.country))}
             </Text>
             {address.phone ? (
-              <Text className="text-[11px] text-base-content opacity-60">{address.phone}</Text>
+              <Text variant="caption" tone="muted">
+                {address.phone}
+              </Text>
             ) : null}
           </Pressable>
         )
@@ -70,9 +82,12 @@ export function AddressPicker({
         accessibilityRole="button"
         accessibilityLabel="Añadir una dirección de envío"
         onPress={onAdd}
-        className="rounded-field border border-dashed border-base-300 p-3"
+        className="flex-row items-center gap-2 rounded-field border border-dashed border-base-300 p-3 active:opacity-70"
       >
-        <Text className="text-[13px] text-primary">Añadir dirección</Text>
+        <Icon glyph={MapPinPlus} size="md" tone="primary" />
+        <Text variant="label" tone="primary" className="shrink-0">
+          Añadir dirección
+        </Text>
       </Pressable>
     </View>
   )

@@ -61,9 +61,6 @@ describe('AccountScreen', () => {
     await pulsa('ir-a-monedero')
     expect(router.push).toHaveBeenCalledWith('/wallet')
 
-    await pulsa('ir-a-plan')
-    expect(router.push).toHaveBeenCalledWith('/settings/subscription')
-
     await pulsa('ir-a-region')
     expect(router.push).toHaveBeenCalledWith('/settings/region')
 
@@ -154,5 +151,14 @@ describe('AccountScreen', () => {
     await screen.findByTestId('cuenta-vacia')
     expect(signOut.execute).toHaveBeenCalled()
     expect(router.replace).toHaveBeenCalledWith('/login')
+  })
+
+  it('no ofrece contratar ningún plan', async () => {
+    // Los planes se contratan en el escritorio. Google y Apple exigen que una suscripción vendida
+    // dentro de una aplicación pase por su propio cobro —con su comisión—, así que ofrecerla aquí
+    // sería motivo de rechazo en la tienda.
+    await renderCatalog(<AccountScreen />, { signOut: { execute: jest.fn() } as never })
+
+    expect(screen.queryByText('Mi plan')).toBeNull()
   })
 })

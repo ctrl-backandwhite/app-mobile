@@ -1,5 +1,7 @@
 import { ReactElement } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
+
+import { Text } from '@ds/components'
 
 import { sortEventsByDate, TrackingEvent } from '@features/orders/domain/entities/tracking'
 
@@ -26,7 +28,7 @@ export function TrackingTimeline({ events }: Props): ReactElement {
 
   if (ordered.length === 0) {
     return (
-      <Text className="text-[13px] text-base-content opacity-60">
+      <Text variant="label" tone="muted">
         Todavía no hay movimientos registrados.
       </Text>
     )
@@ -47,10 +49,10 @@ export function TrackingTimeline({ events }: Props): ReactElement {
             </View>
 
             <View className={`flex-1 gap-0.5 ${isLast ? '' : 'pb-4'}`}>
-              <Text className="text-[13px] leading-[18px] text-base-content">
+              <Text variant="label" className="leading-[18px]">
                 {event.description ?? event.status}
               </Text>
-              <Text className="text-[11px] text-base-content opacity-60">{subtitleOf(event)}</Text>
+              <Text variant="caption" tone="muted">{subtitleOf(event)}</Text>
             </View>
           </View>
         )

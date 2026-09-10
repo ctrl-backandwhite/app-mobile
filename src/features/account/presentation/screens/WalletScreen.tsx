@@ -1,10 +1,11 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { router } from 'expo-router'
+import { Plus, WalletMinimal } from 'lucide-react-native'
 import { ReactElement } from 'react'
-import { ActivityIndicator, FlatList, Text, View } from 'react-native'
+import { FlatList, View } from 'react-native'
 
 import { useContainer } from '@composition/container.provider'
-import { Button, Card, Screen } from '@ds/components'
+import { Button, Icon, Screen, Spinner, Text } from '@ds/components'
 import { EmptyState } from '@features/catalog/presentation/components'
 import {
   labelOf,
@@ -48,19 +49,29 @@ export function WalletScreen(): ReactElement {
 
   const apuntes: WalletTransaction[] = movimientos.data?.pages.flatMap((p) => [...p.items]) ?? []
 
+  /*
+    El saldo va sobre el cobalto de la marca y no sobre una tarjeta blanca más: es dinero propio, la
+    única cifra de la aplicación que no depende de ningún catálogo, y en el gris de fondo se perdía
+    entre los movimientos que tiene justo debajo.
+  */
   const cabecera = (
     <View className="gap-4 pb-2">
-      <Card>
-        <Text className="text-[13px] text-base-content opacity-70">Saldo disponible</Text>
+      <View className="gap-1 rounded-box bg-primary p-5">
+        <View className="flex-row items-center gap-2">
+          <Icon glyph={WalletMinimal} size="md" tone="inverse" />
+          <Text variant="eyebrow" tone="inverse">
+            Saldo disponible
+          </Text>
+        </View>
         {saldo.isLoading ? (
-          <ActivityIndicator testID="cargando-saldo" className="mt-2 self-start" />
+          <Spinner size="sm" testID="cargando-saldo" className="mt-2 self-start" />
         ) : (
-          <Text testID="saldo" className="mt-1 font-medium text-[30px] text-base-content">
+          <Text testID="saldo" variant="display" tone="inverse" className="mt-1">
             {saldo.data?.balanceFormatted ?? '—'}
           </Text>
         )}
         {saldo.data?.holdFormatted ? (
-          <Text className="mt-1 text-[12px] text-base-content opacity-60">
+          <Text variant="caption" tone="inverse" className="mt-1 opacity-80">
             {`Retenido por operaciones en curso: ${saldo.data.holdFormatted}`}
           </Text>
         ) : null}
@@ -69,12 +80,14 @@ export function WalletScreen(): ReactElement {
           <Button
             testID="ir-a-recargar"
             title="Recargar"
+            icon={Plus}
+            variant="outline"
             onPress={(): void => router.push('/wallet-recharge')}
           />
         </View>
-      </Card>
+      </View>
 
-      <Text className="font-medium text-[15px] text-base-content">Movimientos</Text>
+      <Text variant="heading">Movimientos</Text>
     </View>
   )
 
@@ -105,7 +118,9 @@ export function WalletScreen(): ReactElement {
           void movimientos.refetch()
           void saldo.refetch()
         }}
-        renderItem={({ item }): ReactElement => <Apunte movimiento={item} />}
+        renderItem={({ item, index }): ReactElement => (
+          <Apunte movimiento={item} ultimo={index === apuntes.length - 1} />
+        )}
         onEndReachedThreshold={0.5}
         onEndReached={(): void => {
           if (movimientos.hasNextPage && !movimientos.isFetchingNextPage) {
@@ -114,18 +129,16 @@ export function WalletScreen(): ReactElement {
         }}
         ListEmptyComponent={
           movimientos.isLoading ? (
-            <ActivityIndicator testID="cargando-movimientos" />
+            <Spinner testID="cargando-movimientos" className="py-6" />
           ) : (
-            <Text className="py-6 text-center text-[13px] text-base-content opacity-60">
+            <Text variant="label" tone="muted" className="py-6 text-center">
               Todavía no hay movimientos.
             </Text>
           )
         }
         ListFooterComponent={
           movimientos.isFetchingNextPage ? (
-            <View className="py-4">
-              <ActivityIndicator />
-            </View>
+            <Spinner className="py-4" />
           ) : null
         }
       />
@@ -137,27 +150,36 @@ export function WalletScreen(): ReactElement {
  * Una línea del histórico. El importe va a la derecha y con color: en una lista de movimientos lo
  * primero que se busca es si entró o salió dinero, y el signo solo es difícil de ver.
  */
-function Apunte({ movimiento }: { movimiento: WalletTransaction }): ReactElement {
+function Apunte({
+  movimiento,
+  ultimo,
+}: {
+  movimiento: WalletTransaction
+  ultimo: boolean
+}): ReactElement {
   return (
     <View
       testID={`movimiento-${movimiento.id}`}
-      className="flex-row items-center justify-between border-b border-base-300 py-3"
+      className={`flex-row items-center justify-between py-3 ${
+        ultimo ? '' : 'border-b border-base-200'
+      }`}
     >
       <View className="flex-1 pr-3">
-        <Text className="font-medium text-[14px] text-base-content">{labelOf(movimiento.kind)}</Text>
+        <Text variant="label">{labelOf(movimiento.kind)}</Text>
         {movimiento.description ? (
-          <Text className="mt-0.5 text-[12px] text-base-content opacity-60" numberOfLines={2}>
+          <Text variant="caption" tone="muted" className="mt-0.5" numberOfLines={2}>
             {movimiento.description}
           </Text>
         ) : null}
       </View>
       <View className="items-end">
         <Text
-          className={`font-medium text-[14px] ${movimiento.esEntrada ? 'text-success' : 'text-base-content'}`}
+          variant="label"
+          tone={movimiento.esEntrada ? 'success' : 'default'}
         >
           {movimiento.amountFormatted}
         </Text>
-        <Text className="mt-0.5 text-[11px] text-base-content opacity-50">
+        <Text variant="caption" tone="muted" className="mt-0.5">
           {movimiento.balanceAfterFormatted}
         </Text>
       </View>

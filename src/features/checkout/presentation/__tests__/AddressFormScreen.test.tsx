@@ -11,8 +11,26 @@ function deps(overrides: Record<string, unknown> = {}) {
   return {
     createAddress: { execute: jest.fn().mockResolvedValue(ok(anAddress({ id: 'a-9' }))) },
     listRegions: { execute: jest.fn().mockResolvedValue(ok([])) },
+    listCountries: {
+      execute: jest.fn().mockResolvedValue(
+        ok([
+          { code: 'ES', name: 'España' },
+          { code: 'US', name: 'Estados Unidos' },
+        ]),
+      ),
+    },
     ...overrides,
   }
+}
+
+/** Abre la lista de destinos y elige uno; después espera a que lleguen sus regiones. */
+async function elige(
+  container: { listRegions: { execute: jest.Mock } },
+  code: string,
+): Promise<void> {
+  await fireEvent.press(screen.getByTestId('pais-de-entrega'))
+  await fireEvent.press(await screen.findByTestId(`pais-${code}`))
+  await waitFor(() => expect(container.listRegions.execute).toHaveBeenCalledWith(code))
 }
 
 /** Rellena lo imprescindible y espera a que la consulta de regiones del país se asiente. */
@@ -20,8 +38,7 @@ async function fill(container: { listRegions: { execute: jest.Mock } }): Promise
   await fireEvent.changeText(screen.getByLabelText('Nombre y apellidos'), 'Ana Ruiz')
   await fireEvent.changeText(screen.getByLabelText('Dirección'), 'Calle Mayor 1')
   await fireEvent.changeText(screen.getByLabelText('Ciudad'), 'Madrid')
-  await fireEvent.changeText(screen.getByLabelText('País (código de dos letras)'), 'es')
-  await waitFor(() => expect(container.listRegions.execute).toHaveBeenCalledWith('ES'))
+  await elige(container, 'ES')
 }
 
 describe('AddressFormScreen', () => {
@@ -34,7 +51,7 @@ describe('AddressFormScreen', () => {
     expect(container.createAddress.execute).not.toHaveBeenCalled()
   })
 
-  it('crea la dirección con el país en mayúsculas y vuelve atrás', async () => {
+  it('crea la dirección con el país elegido y vuelve atrás', async () => {
     const container = deps()
     await renderCheckout(<AddressFormScreen />, container)
 
@@ -92,10 +109,9 @@ describe('AddressFormScreen', () => {
     })
     await renderCheckout(<AddressFormScreen />, container)
 
-    await fireEvent.changeText(screen.getByLabelText('País (código de dos letras)'), 'us')
+    await elige(container, 'US')
 
     expect(await screen.findByLabelText('California')).toBeTruthy()
-    await waitFor(() => expect(container.listRegions.execute).toHaveBeenCalledWith('US'))
   })
 
   it('elige la región y la manda con la dirección', async () => {
@@ -105,7 +121,7 @@ describe('AddressFormScreen', () => {
     await renderCheckout(<AddressFormScreen />, container)
 
     await fill(container)
-    await fireEvent.changeText(screen.getByLabelText('País (código de dos letras)'), 'us')
+    await elige(container, 'US')
     await fireEvent.press(await screen.findByLabelText('California'))
     await fireEvent.press(screen.getByText('Guardar dirección'))
 
@@ -121,8 +137,7 @@ describe('AddressFormScreen', () => {
     const container = deps()
     await renderCheckout(<AddressFormScreen />, container)
 
-    await fireEvent.changeText(screen.getByLabelText('País (código de dos letras)'), 'es')
-    await waitFor(() => expect(container.listRegions.execute).toHaveBeenCalledWith('ES'))
+    await elige(container, 'ES')
 
     expect(screen.getByLabelText('Provincia o estado')).toBeTruthy()
   })

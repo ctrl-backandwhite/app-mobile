@@ -1,5 +1,8 @@
+import { Check, Circle } from 'lucide-react-native'
 import { ReactElement } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
+
+import { Icon, Text } from '@ds/components'
 
 import { checkPassword, PasswordRequirement } from '@features/auth/domain/policies/password-policy'
 
@@ -35,11 +38,14 @@ export function PasswordRequirements({ value }: Props): ReactElement {
           accessibilityLabel={`${LABELS[requirement.key]}: ${requirement.met ? 'cumplido' : 'pendiente'}`}
           className="flex-row items-center gap-2"
         >
-          <Text className={`text-[12px] ${requirement.met ? 'text-success' : 'text-base-content opacity-50'}`}>
-            {requirement.met ? '✓' : '○'}
-          </Text>
+          <Icon
+            glyph={requirement.met ? Check : Circle}
+            size="sm"
+            tone={requirement.met ? 'success' : 'muted'}
+          />
           <Text
-            className={`text-[12px] ${requirement.met ? 'text-success' : 'text-base-content opacity-60'}`}
+            variant="caption"
+            tone={requirement.met ? 'success' : 'muted'}
           >
             {LABELS[requirement.key]}
           </Text>

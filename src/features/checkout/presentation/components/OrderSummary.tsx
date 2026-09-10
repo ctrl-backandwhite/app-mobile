@@ -1,7 +1,7 @@
 import { ReactElement, ReactNode } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
-import { Alert } from '@ds/components'
+import { Alert, Text } from '@ds/components'
 import {
   etaLabel,
   hasCustomsLine,
@@ -41,16 +41,19 @@ function Row({
   return (
     <View className="flex-row items-start justify-between gap-3">
       <View className="flex-1">
-        <Text className={`text-[13px] ${strong ? 'font-medium text-base-content' : 'text-base-content opacity-70'}`}>
+        <Text variant="label" tone={strong ? 'default' : 'muted'}>
           {label}
         </Text>
-        {hint ? <Text className="text-[11px] text-base-content opacity-50">{hint}</Text> : null}
+        {hint ? (
+          <Text variant="caption" tone="muted">
+            {hint}
+          </Text>
+        ) : null}
       </View>
       <Text
         accessibilityLabel={`${label}: ${amount ?? 'pendiente'}`}
-        className={`text-[13px] ${strong ? 'font-medium text-[16px]' : ''} ${
-          tone === 'positive' ? 'text-success' : 'text-base-content'
-        } ${amount ? '' : 'opacity-40'}`}
+        variant={strong ? 'price' : 'label'}
+        tone={tone === 'positive' ? 'success' : amount ? 'default' : 'muted'}
       >
         {amount ?? NO_AMOUNT}
       </Text>
@@ -99,7 +102,7 @@ export function OrderSummary({ quote, loading = false }: Props): ReactElement {
 
   return (
     <View className="gap-2" testID="order-summary">
-      <Text className="text-[13px] font-medium text-base-content">Resumen</Text>
+      <Text variant="label">Resumen</Text>
 
       <Row label="Subtotal" amount={supported ? quote?.subtotalFormatted : undefined} />
 
@@ -126,11 +129,11 @@ export function OrderSummary({ quote, loading = false }: Props): ReactElement {
       </View>
 
       {loading ? (
-        <Text className="text-[11px] text-base-content opacity-50">Calculando envío…</Text>
+        <Text variant="caption" tone="muted">Calculando envío…</Text>
       ) : null}
 
       {!quote && !loading ? (
-        <Text className="text-[11px] text-base-content opacity-60">
+        <Text variant="caption" tone="muted">
           Elige una dirección para conocer el envío y el total.
         </Text>
       ) : null}

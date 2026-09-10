@@ -26,6 +26,13 @@ export const productSummaryDto = z.object({
   mainImage: z.string().nullish(),
   rating: z.number().nullish(),
   monthlySales: z.number(),
+  /*
+   * Lo que la tienda pone de su bolsillo. `nullish` y no obligatorio: son campos que el escaparate
+   * web ya usa, pero un producto viejo del catálogo puede venir sin ellos y eso no debe tumbar la
+   * validación de toda la página.
+   */
+  dutyCovered: z.boolean().nullish(),
+  shippingCovered: z.boolean().nullish(),
   trendScore: z.number().nullish(),
   status: z.string(),
   displayFormatted: z.string().nullish(),

@@ -4,6 +4,7 @@ import { CreateAddress } from '@features/checkout/domain/usecases/create-address
 import { GetBillingConfig } from '@features/checkout/domain/usecases/get-billing-config'
 import { GetWalletBalance } from '@features/checkout/domain/usecases/get-wallet-balance'
 import { ListAddresses } from '@features/checkout/domain/usecases/list-addresses'
+import { ListCountries } from '@features/checkout/domain/usecases/list-countries'
 import { ListPaymentMethods } from '@features/checkout/domain/usecases/list-payment-methods'
 import { ListRegions } from '@features/checkout/domain/usecases/list-regions'
 import { PayWithProvider } from '@features/checkout/domain/usecases/pay-with-provider'
@@ -15,6 +16,7 @@ import { QuoteShipping } from '@features/checkout/domain/usecases/quote-shipping
 export interface CheckoutDeps {
   readonly listAddresses: ListAddresses
   readonly createAddress: CreateAddress
+  readonly listCountries: ListCountries
   readonly listRegions: ListRegions
   readonly quoteShipping: QuoteShipping
   readonly placeOrder: PlaceOrder

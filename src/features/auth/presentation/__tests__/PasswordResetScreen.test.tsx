@@ -115,7 +115,10 @@ describe('PasswordResetScreen', () => {
     await waitFor(() =>
       expect(confirmReset.execute).toHaveBeenCalledWith('123456', VALID_PASSWORD),
     )
-    await waitFor(() => expect(global.routerMock.replace).toHaveBeenCalledWith('/login'))
+    await waitFor(() => expect(global.routerMock.replace).toHaveBeenCalledWith({
+      pathname: '/login',
+      params: { aviso: 'contrasena-cambiada' },
+    }))
   })
 
   it('muestra el error cuando el código ya no vale y no navega', async () => {

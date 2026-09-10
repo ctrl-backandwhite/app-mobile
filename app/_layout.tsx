@@ -22,6 +22,7 @@ import { useRefetchOnRegionChange } from '@features/auth/presentation/hooks/use-
 import { useSessionStore } from '@features/auth/presentation/state/session.store'
 import { CardPaymentProvider } from '@features/checkout/presentation/components'
 import { useMergeGuestCart } from '@features/cart/presentation/hooks/use-merge-guest-cart'
+import { useSyncCartCount } from '@features/cart/presentation/hooks/use-sync-cart-count'
 import { useLoadFavorites } from '@features/favorites/presentation/hooks/use-load-favorites'
 import { useNotificationTaps } from '@features/notifications/presentation/hooks/use-notification-taps'
 
@@ -44,6 +45,7 @@ function SessionGate({ fontsReady }: { fontsReady: boolean }): ReactElement | nu
   useRefetchOnRegionChange()
   useLoadFavorites()
   useMergeGuestCart()
+  useSyncCartCount()
   useNotificationTaps()
   const status = useSessionStore((state) => state.status)
   const ready = fontsReady && status !== 'loading'
